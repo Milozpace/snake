@@ -5,9 +5,8 @@ public class Renderer
     public const int offset_x = 2;
     public const int offset_y = 3;
 
-    public List<Point> Foodlist = new();
+    
 
-    public bool correct_food = false;
 
     private void draw_cell(int x, int y, ConsoleColor color)
     {
@@ -47,34 +46,8 @@ public class Renderer
         Console.ResetColor();
     }
 
-    public void create_food(Snake snake)
-    {
-        //感觉这里写的太麻烦了，对于食物生成的判断逻辑（后面再改！）
-        while (!correct_food)
-        {
-            Random random = new Random();
-            var new_food = new Point(
-            random.Next(2, map_width - 2),
-            random.Next(2, map_height - 2)
-            );
 
-            correct_food = true;
-            foreach (Point segment in snake.body)
-            {
-                if (segment.X == new_food.X && segment.Y == new_food.Y)
-                {
-                    correct_food = false;
-                }
-            }
-            if (correct_food)
-            {
-                Foodlist.Add(new_food);
-            }
-        }
-
-        correct_food = false;
-    }
-    public void draw_food()
+    public void draw_food(List<Point> Foodlist)
     {
         foreach (Point food in Foodlist)
         {

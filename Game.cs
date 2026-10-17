@@ -9,6 +9,7 @@ class Game
         dead,
         pause
     }
+    public List<Point> Foodlist = new();
 
     public GameState gamestate;
     public int score;
@@ -19,6 +20,28 @@ class Game
     {
         this.gamestate = GameState.live;
         this.score = 0;
+    }
+        public void create_food(Snake snake)
+    {
+        bool correct_food = false;
+        do
+        {
+            Random random = new Random();
+            var new_food = new Point(
+            random.Next(2, Renderer.map_width - 2),
+            random.Next(2, Renderer.map_height - 2)
+            );
+
+            correct_food = true;
+            if (snake.body.Contains(new_food))
+            {
+                correct_food = false;
+            }
+            if (correct_food)
+            {
+                Foodlist.Add(new_food);
+            }
+        } while (!correct_food);
     }
     public void StartGame(Snake snake, Renderer renderer)
     {
@@ -47,7 +70,7 @@ class Game
             {
                 Console.Clear();
                 renderer.draw_map();
-                renderer.draw_food();
+                renderer.draw_food(Foodlist);
                 renderer.draw_header(this.score);
                 snake.move();
                 renderer.draw_snake(snake);
@@ -56,7 +79,7 @@ class Game
             }
             if (Foodcreate_timer.ElapsedMilliseconds >= 2000)
             {
-                renderer.create_food(snake);
+                create_food(snake);
                 Foodcreate_timer.Restart();
             }
 
@@ -73,3 +96,4 @@ class Game
         }
     }
 }
+
