@@ -13,6 +13,7 @@ class Game
 
     public GameState gamestate;
     public int score;
+    public int GameRunspeed;
     private Stopwatch Gamerun_timer = Stopwatch.StartNew();
     private Stopwatch Foodcreate_timer = Stopwatch.StartNew();
 
@@ -20,8 +21,9 @@ class Game
     {
         this.gamestate = GameState.live;
         this.score = 0;
+        GameRunspeed = 200;
     }
-        public void create_food(Snake snake)
+    public void create_food(Snake snake)
     {
         bool correct_food = false;
         do
@@ -66,24 +68,35 @@ class Game
             }
 
             //游戏运行/画面绘制循环(200ms)
-            if (Gamerun_timer.ElapsedMilliseconds >= 200)
+            if (Gamerun_timer.ElapsedMilliseconds >= GameRunspeed)
             {
                 Console.Clear();
                 renderer.draw_map();
-                renderer.draw_food(Foodlist);
                 renderer.draw_header(this.score);
-                snake.move();
-                renderer.draw_snake(snake);
+                snake.move(Foodlist);
 
+                if (Foodlist.Contains(snake.Snakehead))
+                {
+                    snake.grow();
+                    var FoodPosition = snake.Snakehead;
+                    Foodlist.Remove(FoodPosition);
+                    score += 3;
+                    if (GameRunspeed > 150)
+                        GameRunspeed -= 2;
+                }
+
+                renderer.draw_food(Foodlist);
+                renderer.draw_snake(snake);
                 Gamerun_timer.Restart();
             }
-            if (Foodcreate_timer.ElapsedMilliseconds >= 2000)
+
+
+            if (Foodcreate_timer.ElapsedMilliseconds >= 5000)
             {
                 create_food(snake);
                 Foodcreate_timer.Restart();
             }
 
-            
             bool state_x = (snake.Snakehead.X <= 0 || snake.Snakehead.X >= Renderer.map_width - 1);
             bool state_y = (snake.Snakehead.Y <= 0 || snake.Snakehead.Y >= Renderer.map_height - 1);
             if (state_x || state_y)

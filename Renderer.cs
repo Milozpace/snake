@@ -5,8 +5,6 @@ public class Renderer
     public const int offset_x = 2;
     public const int offset_y = 3;
 
-    
-
 
     private void draw_cell(int x, int y, ConsoleColor color)
     {
