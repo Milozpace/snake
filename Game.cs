@@ -52,7 +52,8 @@ class Game
             if (Console.KeyAvailable)
             {
                 ConsoleKey key = Console.ReadKey(true).Key;
-                snake.currrentDirection = key switch
+
+                Snake.Direction Newdiretion = key switch
                 {
                     ConsoleKey.UpArrow => Snake.Direction.Up,
                     ConsoleKey.DownArrow => Snake.Direction.Down,
@@ -60,6 +61,24 @@ class Game
                     ConsoleKey.RightArrow => Snake.Direction.Right,
                     _ => snake.currrentDirection
                 };
+
+                switch (Newdiretion)
+                {
+                    case Snake.Direction.Up when (snake.currrentDirection != Snake.Direction.Down):
+                        snake.currrentDirection = Newdiretion;
+                        break;
+
+                    case Snake.Direction.Down when (snake.currrentDirection != Snake.Direction.Up):
+                        snake.currrentDirection = Newdiretion;
+                        break;
+
+                    case Snake.Direction.Left when (snake.currrentDirection != Snake.Direction.Right):
+                        snake.currrentDirection = Newdiretion;
+                        break;
+                    case Snake.Direction.Right when (snake.currrentDirection != Snake.Direction.Left):
+                        snake.currrentDirection = Newdiretion;
+                        break;
+                }
 
                 if (key == ConsoleKey.Enter)
                 {
