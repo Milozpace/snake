@@ -152,7 +152,8 @@ class Game
             //死亡检查点
             bool state_x = (snake.Snakehead.X <= 0 || snake.Snakehead.X >= Renderer.map_width - 1);
             bool state_y = (snake.Snakehead.Y <= 0 || snake.Snakehead.Y >= Renderer.map_height - 1);
-            if (state_x || state_y)
+            bool hitSelf = snake.body.Skip(1).Contains(snake.Snakehead);
+            if (state_x || state_y || hitSelf)
             {
                 gamestate = GameState.dead;
             }
