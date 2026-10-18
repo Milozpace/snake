@@ -95,49 +95,51 @@ class Game
                     snake.Turn(Newdiretion);
                 }
 
-                //游戏运行/画面绘制循环(200ms)
-                if (gamestate == GameState.live && Gamerun_timer.ElapsedMilliseconds >= GameRunspeed)
-                {
-                    Console.Clear();
-                    renderer.draw_map();
-                    renderer.draw_header(this.score);
-                    renderer.draw_footer();
-                    snake.move(Foodlist);
-
-                    if (Foodlist.Contains(snake.snake_head))
-                    {
-                        snake.grow();
-                        var FoodPosition = snake.snake_head;
-                        Foodlist.Remove(FoodPosition);
-                        score += 3;
-                        if (GameRunspeed > 120)
-                            GameRunspeed -= 5;
-                    }
-
-                    renderer.draw_food(Foodlist);
-                    renderer.draw_snake(snake);
-                    Gamerun_timer.Restart();
-                }
-
-                //食物生成循环（5s）
-                if (gamestate == GameState.live && Foodcreate_timer.ElapsedMilliseconds >= 5000)
-                {
-                    Create_food(snake);
-                    Foodcreate_timer.Restart();
-                }
-
-                //死亡检查点
-                bool state_x = (snake.snake_head.X <= 0 || snake.snake_head.X >= Renderer.map_width - 1);
-                bool state_y = (snake.snake_head.Y <= 0 || snake.snake_head.Y >= Renderer.map_height - 1);
-                bool hitSelf = snake.Body.Skip(1).Contains(snake.snake_head);
-                if (state_x || state_y || hitSelf)
-                {
-                    gamestate = GameState.dead;
-                }
-
-                //游戏交互循环（10ms）
-                Thread.Sleep(10);
             }
+
+            //游戏运行/画面绘制循环(200ms)
+            if (gamestate == GameState.live && Gamerun_timer.ElapsedMilliseconds >= GameRunspeed)
+            {
+                Console.Clear();
+                renderer.draw_map();
+                renderer.draw_header(this.score);
+                renderer.draw_footer();
+                snake.move(Foodlist);
+
+                if (Foodlist.Contains(snake.snake_head))
+                {
+                    snake.grow();
+                    var FoodPosition = snake.snake_head;
+                    Foodlist.Remove(FoodPosition);
+                    score += 3;
+                    if (GameRunspeed > 120)
+                        GameRunspeed -= 5;
+                }
+
+                renderer.draw_food(Foodlist);
+                renderer.draw_snake(snake);
+                Gamerun_timer.Restart();
+            }
+
+            //食物生成循环（5s）
+            if (gamestate == GameState.live && Foodcreate_timer.ElapsedMilliseconds >= 5000)
+            {
+                Create_food(snake);
+                Foodcreate_timer.Restart();
+            }
+
+            //死亡检查点
+            bool state_x = (snake.snake_head.X <= 0 || snake.snake_head.X >= Renderer.map_width - 1);
+            bool state_y = (snake.snake_head.Y <= 0 || snake.snake_head.Y >= Renderer.map_height - 1);
+            bool hitSelf = snake.Body.Skip(1).Contains(snake.snake_head);
+            if (state_x || state_y || hitSelf)
+            {
+                gamestate = GameState.dead;
+            }
+
+            //游戏交互循环（10ms）
+            Thread.Sleep(10);
+
         }
     }
 
