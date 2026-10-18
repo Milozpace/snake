@@ -7,16 +7,17 @@ class Game
     {
         live,
         dead,
-        pause
+        pause,
+        exit
     }
 
     public enum GameControl
     {
-        Exit,
+        End,
         Restart
     }
 
-    public List<Point> Foodlist = new();
+    public List<Point> Foodlist = [];
 
     public GameState gamestate;
     public int score;
@@ -30,7 +31,7 @@ class Game
         this.score = 0;
         GameRunspeed = 200;
     }
-    public void create_food(Snake snake)
+    public void Create_food(Snake snake)
     {
         bool correct_food = false;
         do
@@ -55,43 +56,66 @@ class Game
     //游戏主循环
     public void StartGame(Snake snake, Renderer renderer)
     {
-        while (gamestate == GameState.live)
+        while (gamestate == GameState.live || gamestate == GameState.pause)
         {
             if (Console.KeyAvailable)
             {
                 ConsoleKey key = Console.ReadKey(true).Key;
 
-                Snake.Direction Newdiretion = key switch
+                //暂停与退出判断
+                if (key == ConsoleKey.Escape)
                 {
-                    ConsoleKey.UpArrow => Snake.Direction.Up,
-                    ConsoleKey.DownArrow => Snake.Direction.Down,
-                    ConsoleKey.LeftArrow => Snake.Direction.Left,
-                    ConsoleKey.RightArrow => Snake.Direction.Right,
-                    _ => snake.currrentDirection
-                };
-
-                switch (Newdiretion)
-                {
-                    case Snake.Direction.Up when (snake.currrentDirection != Snake.Direction.Down):
-                        snake.currrentDirection = Newdiretion;
-                        break;
-
-                    case Snake.Direction.Down when (snake.currrentDirection != Snake.Direction.Up):
-                        snake.currrentDirection = Newdiretion;
-                        break;
-
-                    case Snake.Direction.Left when (snake.currrentDirection != Snake.Direction.Right):
-                        snake.currrentDirection = Newdiretion;
-                        break;
-                    case Snake.Direction.Right when (snake.currrentDirection != Snake.Direction.Left):
-                        snake.currrentDirection = Newdiretion;
-                        break;
-                }
-
-                if (key == ConsoleKey.Enter)
-                {
+                    gamestate = GameState.exit;
                     break;
                 }
+
+                if (key == ConsoleKey.Spacebar)
+                {
+                    if (gamestate == GameState.live)
+                    {
+                        gamestate = GameState.pause;
+                        Gamerun_timer.Stop();
+                        Foodcreate_timer.Stop();
+                    }
+                    else if (gamestate == GameState.pause)
+                    {
+                        gamestate = GameState.live;
+                        Gamerun_timer.Start();
+                        Foodcreate_timer.Start();
+                    }
+                }
+
+                //方向
+                if (gamestate != GameState.pause)
+                {
+                    Snake.Direction Newdiretion = key switch
+                    {
+                        ConsoleKey.UpArrow => Snake.Direction.Up,
+                        ConsoleKey.DownArrow => Snake.Direction.Down,
+                        ConsoleKey.LeftArrow => Snake.Direction.Left,
+                        ConsoleKey.RightArrow => Snake.Direction.Right,
+                        _ => snake.currrentDirection
+                    };
+
+                    switch (Newdiretion)
+                    {
+                        case Snake.Direction.Up when (snake.currrentDirection != Snake.Direction.Down):
+                            snake.currrentDirection = Newdiretion;
+                            break;
+
+                        case Snake.Direction.Down when (snake.currrentDirection != Snake.Direction.Up):
+                            snake.currrentDirection = Newdiretion;
+                            break;
+
+                        case Snake.Direction.Left when (snake.currrentDirection != Snake.Direction.Right):
+                            snake.currrentDirection = Newdiretion;
+                            break;
+                        case Snake.Direction.Right when (snake.currrentDirection != Snake.Direction.Left):
+                            snake.currrentDirection = Newdiretion;
+                            break;
+                    }
+                }
+
             }
 
             //游戏运行/画面绘制循环(200ms)
@@ -118,13 +142,14 @@ class Game
                 Gamerun_timer.Restart();
             }
 
-
+            //食物生成循环（5s）
             if (Foodcreate_timer.ElapsedMilliseconds >= 5000)
             {
-                create_food(snake);
+                Create_food(snake);
                 Foodcreate_timer.Restart();
             }
 
+            //死亡检查点
             bool state_x = (snake.Snakehead.X <= 0 || snake.Snakehead.X >= Renderer.map_width - 1);
             bool state_y = (snake.Snakehead.Y <= 0 || snake.Snakehead.Y >= Renderer.map_height - 1);
             if (state_x || state_y)
@@ -150,9 +175,9 @@ class Game
                 case ConsoleKey.Enter:
                     return GameControl.Restart;
                 case ConsoleKey.Spacebar:
-                    return GameControl.Exit;
+                    return GameControl.End;
                 case ConsoleKey.Escape:
-                    return GameControl.Exit;
+                    return GameControl.End;
             }
         }
     }
