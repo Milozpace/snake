@@ -17,7 +17,6 @@ while (true)
         break;
 }
 
-
 Console.CursorVisible = true;
 Console.Clear();
 Console.Write("\x1b[?1049l");

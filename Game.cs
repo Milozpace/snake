@@ -100,6 +100,7 @@ class Game
                 Console.Clear();
                 renderer.draw_map();
                 renderer.draw_header(this.score);
+                renderer.draw_footer();
                 snake.move(Foodlist);
 
                 if (Foodlist.Contains(snake.Snakehead))
@@ -108,8 +109,8 @@ class Game
                     var FoodPosition = snake.Snakehead;
                     Foodlist.Remove(FoodPosition);
                     score += 3;
-                    if (GameRunspeed > 150)
-                        GameRunspeed -= 2;
+                    if (GameRunspeed > 120)
+                        GameRunspeed -= 5;
                 }
 
                 renderer.draw_food(Foodlist);

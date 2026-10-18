@@ -45,8 +45,15 @@ public class Renderer
 
     public void draw_header(int score)
     {
-        draw_text(4, 1, ConsoleColor.White, "S N A K E");
-        draw_text(20, 1, ConsoleColor.White, $"SCORE    {score:D3}");
+        draw_text(3, 1, ConsoleColor.DarkGreen, "S N A K E");
+        draw_text(65, 1, ConsoleColor.White, $"S C O R E");
+        draw_text(77, 1, ConsoleColor.DarkYellow, $"{score:D3}");
+    }
+
+    public void draw_footer()
+    {
+        draw_text(3, 24, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
+        draw_text(74, 24, ConsoleColor.DarkGray, "ESC QUIT");
     }
 
 
