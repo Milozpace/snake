@@ -17,11 +17,11 @@ class Game
         Restart
     }
 
-    public List<Point> Foodlist = [];
-
-    public GameState gamestate;
-    public int score;
-    public int GameRunspeed;
+    private readonly List<Point> Foodlist = [];
+    private GameState gamestate;
+    public GameState gameState => gamestate;
+    private int score;
+    private int GameRunspeed;
     private Stopwatch Gamerun_timer = Stopwatch.StartNew();
     private Stopwatch Foodcreate_timer = Stopwatch.StartNew();
 

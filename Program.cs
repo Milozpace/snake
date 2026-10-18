@@ -14,7 +14,7 @@ while (true)
 
     game.StartGame(yuki, renderer);
 
-    if (game.gamestate == Game.GameState.dead)
+    if (game.gameState == Game.GameState.dead)
     {
         if (game.GameOver(renderer) == Game.GameControl.Restart)
         {
