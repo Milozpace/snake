@@ -119,7 +119,7 @@ class Game
             }
 
             //游戏运行/画面绘制循环(200ms)
-            if (Gamerun_timer.ElapsedMilliseconds >= GameRunspeed)
+            if (gamestate == GameState.live && Gamerun_timer.ElapsedMilliseconds >= GameRunspeed)
             {
                 Console.Clear();
                 renderer.draw_map();
@@ -143,7 +143,7 @@ class Game
             }
 
             //食物生成循环（5s）
-            if (Foodcreate_timer.ElapsedMilliseconds >= 5000)
+            if (gamestate == GameState.live && Foodcreate_timer.ElapsedMilliseconds >= 5000)
             {
                 Create_food(snake);
                 Foodcreate_timer.Restart();
