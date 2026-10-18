@@ -9,6 +9,13 @@ class Game
         dead,
         pause
     }
+
+    public enum GameControl
+    {
+        Exit,
+        Restart
+    }
+
     public List<Point> Foodlist = new();
 
     public GameState gamestate;
@@ -45,6 +52,7 @@ class Game
             }
         } while (!correct_food);
     }
+    //游戏主循环
     public void StartGame(Snake snake, Renderer renderer)
     {
         while (gamestate == GameState.live)
@@ -126,6 +134,12 @@ class Game
             //游戏交互循环（10ms）
             Thread.Sleep(10);
         }
+    }
+
+    public GameControl GameOver(Renderer renderer)
+    {
+        renderer.draw_gameover(score);
+        return GameControl.Exit;
     }
 }
 

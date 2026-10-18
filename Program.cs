@@ -6,15 +6,20 @@ Console.Write("\x1b[?1049h");
 Console.Clear();
 Console.CursorVisible = false;
 //
+while (true)
+{
+    Renderer renderer = new Renderer();
+    Snake yuki = new Snake();
+    Game game = new Game();
 
-Renderer renderer = new Renderer();
-Snake yuki = new Snake();
-Game game = new Game();
+    game.StartGame(yuki, renderer);
+    if (game.GameOver(renderer) == Game.GameControl.Exit)
+        break;
+}
 
-game.StartGame(yuki, renderer);
 
-//
 Console.ReadKey(true);
 Console.CursorVisible = true;
-Console.Write("\x1b[?1049l"); 
+Console.Clear();
+Console.Write("\x1b[?1049l");
 
