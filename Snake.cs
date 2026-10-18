@@ -2,10 +2,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 public class Snake
 {
-    public List<Point> body { get; private set; }
-    public Point Snakehead;
-    public Point SnakeTail;
-    public Point Snakeoldtail;
+    private readonly List<Point> body = new();
+    public IReadOnlyList<Point> Body => body;
+
+    public Point snake_head => body[0];
+    public Point snake_tail => body[^1];
+    private Point snake_oldtail;
     public enum Direction
     {
         Up,
@@ -14,13 +16,12 @@ public class Snake
         Right
     }
 
-    public Direction currrentDirection;
+    private Direction currrentDirection;
+    public Direction CurrrentDirection => currrentDirection;
     public Snake()
     {
         body = [new(20, 10), new(19, 10), new(18, 10)];
-        Snakehead = new Point(body[0].X, body[0].Y);
-        SnakeTail = new Point(body[body.Count - 1].X, body[body.Count - 1].Y);
-        Snakeoldtail = new Point(0, 0);
+        snake_oldtail = new Point(0, 0);
 
         this.currrentDirection = Direction.Right;
     }
@@ -59,18 +60,32 @@ public class Snake
     }
     public void move(List<Point> foodlist)
     {
-        Snakeoldtail = new Point(body[body.Count - 1].X, body[body.Count - 1].Y);
+        snake_oldtail = body[^1];
         Point newHead = newhead();
         body.Insert(0, newHead);
         body.RemoveAt(body.Count - 1);
+    }
 
-        Snakehead = new Point(body[0].X, body[0].Y);
-        SnakeTail = new Point(body[body.Count - 1].X, body[body.Count - 1].Y);
+    public void Turn(Direction newDirection)
+    {
+        bool isOpposite = (currrentDirection, newDirection) switch
+        {
+            (Direction.Up, Direction.Down) => true,
+            (Direction.Down, Direction.Up) => true,
+            (Direction.Left, Direction.Right) => true,
+            (Direction.Right, Direction.Left) => true,
+            _ => false
+        };
+
+        if(!isOpposite)
+        {
+            currrentDirection = newDirection;
+        }
     }
 
     public void grow()
     {
-        body.Add(Snakeoldtail);
+        body.Add(snake_oldtail);
     }
 }
 

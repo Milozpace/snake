@@ -68,7 +68,7 @@ public class Renderer
 
     public void draw_snake(Snake snake)
     {
-        foreach (Point segment in snake.body)
+        foreach (Point segment in snake.Body)
         {
             draw_cell(segment.X, segment.Y, ConsoleColor.Cyan);
         }
