@@ -71,6 +71,7 @@ public class Renderer
     {
         draw_text_centerX(9, ConsoleColor.Red, "G A M E  O V E R");
         draw_text_centerX(12, ConsoleColor.White, $"SCORE: {score}");
-        draw_text_centerX(15, ConsoleColor.DarkGray, "ENTER TO RESTART");
+        draw_text_centerX(15, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
+        draw_text_centerX(16, ConsoleColor.DarkGray, " or 'SPACE' TO EXIT");
     }
 }

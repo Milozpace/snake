@@ -139,7 +139,21 @@ class Game
     public GameControl GameOver(Renderer renderer)
     {
         renderer.draw_gameover(score);
-        return GameControl.Exit;
+
+        while (true)
+        {
+            ConsoleKey key = Console.ReadKey(true).Key;
+
+            switch (key)
+            {
+                case ConsoleKey.Enter:
+                    return GameControl.Restart;
+                case ConsoleKey.Spacebar:
+                    return GameControl.Exit;
+                case ConsoleKey.Escape:
+                    return GameControl.Exit;
+            }
+        }
     }
 }
 
