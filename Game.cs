@@ -33,7 +33,7 @@ class Game
     }
     public void Create_food(Snake snake)
     {
-        bool correct_food = false;
+        bool incorrect_food;
         do
         {
             Random random = new Random();
@@ -42,16 +42,12 @@ class Game
             random.Next(2, Renderer.map_height - 2)
             );
 
-            correct_food = true;
-            if (snake.body.Contains(new_food))
-            {
-                correct_food = false;
-            }
-            if (correct_food)
+            incorrect_food = snake.body.Contains(new_food) || Foodlist.Contains(new_food);
+            if (!incorrect_food)
             {
                 Foodlist.Add(new_food);
             }
-        } while (!correct_food);
+        } while (incorrect_food);
     }
     //游戏主循环
     public void StartGame(Snake snake, Renderer renderer)
