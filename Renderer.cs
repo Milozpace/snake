@@ -37,7 +37,7 @@ public class Renderer
             {
                 if (x == 0 || y == 0 || x == map_width - 1 || y == map_height - 1)
                 {
-                    draw_cell(x, y, ConsoleColor.Green);
+                    draw_cell(x, y, ConsoleColor.DarkGray);
                 }
             }
         }
