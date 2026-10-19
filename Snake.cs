@@ -47,18 +47,7 @@ public class Snake
 
         return newHead;
     }
-    public bool Eatfood(Point head, List<Point> foodlist)
-    {
-        if (foodlist.Contains(head))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    public void move(List<Point> foodlist)
+    public void move()
     {
         snake_oldtail = body[^1];
         Point newHead = newhead();
