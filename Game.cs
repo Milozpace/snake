@@ -106,7 +106,7 @@ class Game
         Foodcreate_timer.Restart();
     }
 
-    private void DeadCheck(Snake snake, Renderer renderer)
+    private void DeadCheck(Snake snake)
     {
         bool state_x = (snake.snake_head.X <= 0 || snake.snake_head.X >= Renderer.map_width - 1);
         bool state_y = (snake.snake_head.Y <= 0 || snake.snake_head.Y >= Renderer.map_height - 1);
@@ -135,28 +135,23 @@ class Game
         }
     }
 
-    private void GameRun(Snake snake, Renderer renderer)
+    private bool GameRun(Snake snake)
     {
         bool gamenext = gamestate == GameState.live && Gamerun_timer.ElapsedMilliseconds >= GameRunspeed;
         if (!gamenext)
         {
-            return;
+            return false;
         }
-        Console.Clear();
-        renderer.draw_map();
-        renderer.draw_header(this.score);
-        renderer.draw_footer();
+        CreateFood(snake);
         snake.move();
-
         EatFood(snake);
-
-        renderer.draw_food(Foodlist);
-        renderer.draw_snake(snake);
+        DeadCheck(snake);
 
         Gamerun_timer.Restart();
+        return true;
     }
 
-    public void StartGame(Snake snake, Renderer renderer)
+    public void StartGame(Snake snake)
     {
         while (gamestate is GameState.live or GameState.pause)
         {
@@ -164,18 +159,18 @@ class Game
             if (gamestate == GameState.exit)
                 break;
 
-            GameRun(snake, renderer);
-
-            CreateFood(snake);
-            DeadCheck(snake, renderer);
+            if (GameRun(snake))
+            {
+                Renderer.DrawFrame(score, Foodlist, snake);
+            }
 
             Thread.Sleep(10);
         }
     }
 
-    public GameControl GameOver(Renderer renderer)
+    public GameControl GameOver()
     {
-        renderer.draw_gameover(score);
+        Renderer.DrawGameover(score);
 
         while (true)
         {

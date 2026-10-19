@@ -1,4 +1,4 @@
-public class Renderer
+public static class Renderer
 {
     public const int map_width = 40;
     public const int map_height = 20;
@@ -6,7 +6,7 @@ public class Renderer
     private const int offset_y = 3;
 
 
-    private void draw_cell(int x, int y, ConsoleColor color)
+    private static void DrawCell(int x, int y, ConsoleColor color)
     {
         Console.ForegroundColor = color;
         Console.SetCursorPosition(offset_x + x * 2, offset_y + y);
@@ -14,7 +14,7 @@ public class Renderer
         Console.ResetColor();
     }
 
-    private void draw_text(int x, int y, ConsoleColor color, string content)
+    private static void DrawText(int x, int y, ConsoleColor color, string content)
     {
         Console.ForegroundColor = color;
         Console.SetCursorPosition(x, y);
@@ -22,14 +22,13 @@ public class Renderer
         Console.ResetColor();
     }
 
-    private void draw_text_centerX(int y, ConsoleColor color, string content)
+    private static void DrawCenterText(int y, ConsoleColor color, string content)
     {
-        //让文字水平居中
         int centerX = offset_x + (map_width - content.Length / 2);
-        draw_text(centerX, y, color, content);
+        DrawText(centerX, y, color, content);
     }
 
-    public void draw_map()
+    private static void DrawMap()
     {
         for (int y = 0; y < map_height; y++)
         {
@@ -37,49 +36,60 @@ public class Renderer
             {
                 if (x == 0 || y == 0 || x == map_width - 1 || y == map_height - 1)
                 {
-                    draw_cell(x, y, ConsoleColor.DarkGray);
+                    DrawCell(x, y, ConsoleColor.DarkGray);
                 }
             }
         }
     }
 
-    public void draw_header(int score)
+    private static void DrawHeader(int score)
     {
-        draw_text(3, 1, ConsoleColor.DarkGreen, "S N A K E");
-        draw_text(65, 1, ConsoleColor.White, $"S C O R E");
-        draw_text(77, 1, ConsoleColor.DarkYellow, $"{score:D3}");
+        DrawText(3, 1, ConsoleColor.DarkGreen, "S N A K E");
+        DrawText(65, 1, ConsoleColor.White, $"S C O R E");
+        DrawText(77, 1, ConsoleColor.DarkYellow, $"{score:D3}");
     }
 
-    public void draw_footer()
+    private static void DrawFooter()
     {
-        draw_text(3, 24, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
-        draw_text(74, 24, ConsoleColor.DarkGray, "ESC QUIT");
+        DrawText(3, 24, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
+        DrawText(74, 24, ConsoleColor.DarkGray, "ESC QUIT");
     }
 
 
-    public void draw_food(List<Point> Foodlist)
+    private static void DrawFood(List<Point> Foodlist)
     {
         foreach (Point food in Foodlist)
         {
-            draw_cell(food.X, food.Y, ConsoleColor.Yellow);
+            DrawCell(food.X, food.Y, ConsoleColor.Yellow);
         }
     }
 
 
-    public void draw_snake(Snake snake)
+    private static void DrawSnake(Snake snake)
     {
-        draw_cell(snake.snake_head.X, snake.snake_head.Y, ConsoleColor.Blue);
+        DrawCell(snake.snake_head.X, snake.snake_head.Y, ConsoleColor.Blue);
         foreach (Point segment in snake.Body.Skip(1))
         {
-            draw_cell(segment.X, segment.Y, ConsoleColor.Cyan);
+            DrawCell(segment.X, segment.Y, ConsoleColor.Cyan);
         }
     }
 
-    public void draw_gameover(int score)
+    public static void DrawFrame(int score,List<Point> Foodlist, Snake snake)
     {
-        draw_text_centerX(9, ConsoleColor.Red, "G A M E  O V E R");
-        draw_text_centerX(12, ConsoleColor.White, $"SCORE: {score}");
-        draw_text_centerX(15, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
-        draw_text_centerX(16, ConsoleColor.DarkGray, " or 'SPACE' TO EXIT");
+        Console.Clear();
+
+        DrawMap();
+        DrawHeader(score);
+        DrawFooter();
+        DrawFood(Foodlist);
+        DrawSnake(snake);
     }
+    public static void DrawGameover(int score)
+    {
+        DrawCenterText(9, ConsoleColor.Red, "G A M E  O V E R");
+        DrawCenterText(12, ConsoleColor.White, $"SCORE: {score}");
+        DrawCenterText(15, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
+        DrawCenterText(16, ConsoleColor.DarkGray, " or 'SPACE' TO EXIT");
+    }
+
 }
