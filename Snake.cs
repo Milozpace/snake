@@ -7,7 +7,7 @@ public class Snake
 
     public Point Head => _body[0];
     public Point Tail => _body[^1];
-    private Point oldTail;
+    private Point previousTailPosition;
     public enum Direction
     {
         Up,
@@ -21,12 +21,12 @@ public class Snake
     public Snake()
     {
         _body = [new(20, 10), new(19, 10), new(18, 10)];
-        oldTail = new Point(0, 0);
+        previousTailPosition = new Point(0, 0);
 
         _currentDirection = Direction.Right;
     }
 
-    private Point GetNewHead()
+    private Point CalculateNextHead()
     {
         Point delta = _currentDirection switch
         {
@@ -46,8 +46,8 @@ public class Snake
     }
     public void Move()
     {
-        oldTail = _body[^1];
-        Point newHead = GetNewHead();
+        previousTailPosition = _body[^1];
+        Point newHead = CalculateNextHead();
         _body.Insert(0, newHead);
         _body.RemoveAt(_body.Count - 1);
     }
@@ -71,7 +71,7 @@ public class Snake
 
     public void Grow()
     {
-        _body.Add(oldTail);
+        _body.Add(previousTailPosition);
     }
 }
 

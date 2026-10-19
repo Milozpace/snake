@@ -2,14 +2,14 @@ public static class Renderer
 {
     public const int MapWidth = 40;
     public const int MapHeight = 20;
-    private const int OffsetX = 2;
-    private const int OffsetY = 3;
+    private const int MapOriginX = 2;
+    private const int MapOriginY = 3;
 
 
-    private static void DrawCell(int x, int y, ConsoleColor color)
+    private static void DrawGridCell(int x, int y, ConsoleColor color)
     {
         Console.ForegroundColor = color;
-        Console.SetCursorPosition(OffsetX + x * 2, OffsetY + y);
+        Console.SetCursorPosition(MapOriginX + x * 2, MapOriginY + y);
         Console.Write("██");
         Console.ResetColor();
     }
@@ -22,9 +22,9 @@ public static class Renderer
         Console.ResetColor();
     }
 
-    private static void DrawCenterText(int y, ConsoleColor color, string content)
+    private static void DrawCenteredText(int y, ConsoleColor color, string content)
     {
-        int centerX = OffsetX + (MapWidth - content.Length / 2);
+        int centerX = MapOriginX + (MapWidth - content.Length / 2);
         DrawText(centerX, y, color, content);
     }
 
@@ -36,7 +36,7 @@ public static class Renderer
             {
                 if (x == 0 || y == 0 || x == MapWidth - 1 || y == MapHeight - 1)
                 {
-                    DrawCell(x, y, ConsoleColor.DarkGray);
+                    DrawGridCell(x, y, ConsoleColor.DarkGray);
                 }
             }
         }
@@ -60,21 +60,21 @@ public static class Renderer
     {
         foreach (Point food in foodList)
         {
-            DrawCell(food.X, food.Y, ConsoleColor.Yellow);
+            DrawGridCell(food.X, food.Y, ConsoleColor.Yellow);
         }
     }
 
 
     private static void DrawSnake(Snake snake)
     {
-        DrawCell(snake.Head.X, snake.Head.Y, ConsoleColor.Blue);
+        DrawGridCell(snake.Head.X, snake.Head.Y, ConsoleColor.Blue);
         foreach (Point segment in snake.Body.Skip(1))
         {
-            DrawCell(segment.X, segment.Y, ConsoleColor.Cyan);
+            DrawGridCell(segment.X, segment.Y, ConsoleColor.Cyan);
         }
     }
 
-    public static void DrawFrame(int score,List<Point> foodList, Snake snake)
+    public static void RenderFrame(int score,List<Point> foodList, Snake snake)
     {
         Console.Clear();
 
@@ -84,12 +84,12 @@ public static class Renderer
         DrawFood(foodList);
         DrawSnake(snake);
     }
-    public static void DrawGameover(int score)
+    public static void DrawGameOver(int score)
     {
-        DrawCenterText(9, ConsoleColor.Red, "G A M E  O V E R");
-        DrawCenterText(12, ConsoleColor.White, $"SCORE: {score}");
-        DrawCenterText(15, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
-        DrawCenterText(16, ConsoleColor.DarkGray, " or 'SPACE' TO EXIT");
+        DrawCenteredText(9, ConsoleColor.Red, "G A M E  O V E R");
+        DrawCenteredText(12, ConsoleColor.White, $"SCORE: {score}");
+        DrawCenteredText(15, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
+        DrawCenteredText(16, ConsoleColor.DarkGray, " or 'SPACE' TO EXIT");
     }
 
 }
