@@ -18,16 +18,16 @@ class Game
     }
 
     private readonly List<Point> _foodList = [];
-    private GameState _gameState;
-    public GameState State => _gameState;
+    public GameState State{get; private set;}
+
     private int _score;
     private int _gameRunspeed;
-    private Stopwatch _gamerunTimer = Stopwatch.StartNew();
-    private Stopwatch _foodCreateTimer = Stopwatch.StartNew();
+    private readonly Stopwatch _gamerunTimer = Stopwatch.StartNew();
+    private readonly Stopwatch _foodCreateTimer = Stopwatch.StartNew();
 
     public Game()
     {
-        this._gameState = GameState.Live;
+        this.State = GameState.Live;
         this._score = 0;
         _gameRunspeed = 200;
     }
@@ -42,27 +42,27 @@ class Game
 
         if (key == ConsoleKey.Escape)
         {
-            _gameState = GameState.Exit;
+            State = GameState.Exit;
             return;
         }
 
         if (key == ConsoleKey.Spacebar)
         {
-            if (_gameState == GameState.Live)
+            if (State == GameState.Live)
             {
-                _gameState = GameState.Pause;
+                State = GameState.Pause;
                 _gamerunTimer.Stop();
                 _foodCreateTimer.Stop();
             }
-            else if (_gameState == GameState.Pause)
+            else if (State == GameState.Pause)
             {
-                _gameState = GameState.Live;
+                State = GameState.Live;
                 _gamerunTimer.Start();
                 _foodCreateTimer.Start();
             }
         }
 
-        if (_gameState != GameState.Pause)
+        if (State != GameState.Pause)
         {
             Snake.Direction? Newdiretion = key switch
             {
@@ -82,7 +82,7 @@ class Game
 
     private void CreateFood(Snake snake)
     {
-        bool Foodready = _gameState == GameState.Live && _foodCreateTimer.ElapsedMilliseconds >= 5000;
+        bool Foodready = State == GameState.Live && _foodCreateTimer.ElapsedMilliseconds >= 5000;
         if (!Foodready)
         {
             return;
@@ -113,7 +113,7 @@ class Game
         bool hitSelf = snake.Body.Skip(1).Contains(snake.Head);
         if (state_x || state_y || hitSelf)
         {
-            _gameState = GameState.Dead;
+            State = GameState.Dead;
         }
     }
 
@@ -137,7 +137,7 @@ class Game
 
     private bool GameRun(Snake snake)
     {
-        bool gamenext = _gameState == GameState.Live && _gamerunTimer.ElapsedMilliseconds >= _gameRunspeed;
+        bool gamenext = State == GameState.Live && _gamerunTimer.ElapsedMilliseconds >= _gameRunspeed;
         if (!gamenext)
         {
             return false;
@@ -153,10 +153,10 @@ class Game
 
     public void StartGame(Snake snake)
     {
-        while (_gameState is GameState.Live or GameState.Pause)
+        while (State is GameState.Live or GameState.Pause)
         {
             HandleInput(snake);
-            if (_gameState == GameState.Exit)
+            if (State == GameState.Exit)
                 break;
 
             if (GameRun(snake))
