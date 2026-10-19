@@ -5,10 +5,10 @@ class Game
 {
     public enum GameState
     {
-        live,
-        dead,
-        pause,
-        exit
+        Live,
+        Dead,
+        Pause,
+        Exit
     }
 
     public enum GameControl
@@ -17,19 +17,19 @@ class Game
         Restart
     }
 
-    private readonly List<Point> Foodlist = [];
-    private GameState gamestate;
-    public GameState gameState => gamestate;
-    private int score;
-    private int GameRunspeed;
-    private Stopwatch Gamerun_timer = Stopwatch.StartNew();
-    private Stopwatch Foodcreate_timer = Stopwatch.StartNew();
+    private readonly List<Point> _foodList = [];
+    private GameState _gameState;
+    public GameState State => _gameState;
+    private int _score;
+    private int _gameRunspeed;
+    private Stopwatch _gamerunTimer = Stopwatch.StartNew();
+    private Stopwatch _foodCreateTimer = Stopwatch.StartNew();
 
     public Game()
     {
-        this.gamestate = GameState.live;
-        this.score = 0;
-        GameRunspeed = 200;
+        this._gameState = GameState.Live;
+        this._score = 0;
+        _gameRunspeed = 200;
     }
 
 
@@ -42,27 +42,27 @@ class Game
 
         if (key == ConsoleKey.Escape)
         {
-            gamestate = GameState.exit;
+            _gameState = GameState.Exit;
             return;
         }
 
         if (key == ConsoleKey.Spacebar)
         {
-            if (gamestate == GameState.live)
+            if (_gameState == GameState.Live)
             {
-                gamestate = GameState.pause;
-                Gamerun_timer.Stop();
-                Foodcreate_timer.Stop();
+                _gameState = GameState.Pause;
+                _gamerunTimer.Stop();
+                _foodCreateTimer.Stop();
             }
-            else if (gamestate == GameState.pause)
+            else if (_gameState == GameState.Pause)
             {
-                gamestate = GameState.live;
-                Gamerun_timer.Start();
-                Foodcreate_timer.Start();
+                _gameState = GameState.Live;
+                _gamerunTimer.Start();
+                _foodCreateTimer.Start();
             }
         }
 
-        if (gamestate != GameState.pause)
+        if (_gameState != GameState.Pause)
         {
             Snake.Direction? Newdiretion = key switch
             {
@@ -82,86 +82,86 @@ class Game
 
     private void CreateFood(Snake snake)
     {
-        bool Foodready = gamestate == GameState.live && Foodcreate_timer.ElapsedMilliseconds >= 5000;
+        bool Foodready = _gameState == GameState.Live && _foodCreateTimer.ElapsedMilliseconds >= 5000;
         if (!Foodready)
         {
             return;
         }
 
-        bool Incorrectfood;
+        bool incorrectfood;
         do
         {
-            var new_food = new Point(
-            Random.Shared.Next(2, Renderer.map_width - 2),
-            Random.Shared.Next(2, Renderer.map_height - 2)
+            var newFood = new Point(
+            Random.Shared.Next(2, Renderer.MapWidth - 2),
+            Random.Shared.Next(2, Renderer.MapHeight - 2)
             );
 
-            Incorrectfood = snake.Body.Contains(new_food) || Foodlist.Contains(new_food);
-            if (!Incorrectfood)
+            incorrectfood = snake.Body.Contains(newFood) || _foodList.Contains(newFood);
+            if (!incorrectfood)
             {
-                Foodlist.Add(new_food);
+                _foodList.Add(newFood);
             }
-        } while (Incorrectfood);
+        } while (incorrectfood);
 
-        Foodcreate_timer.Restart();
+        _foodCreateTimer.Restart();
     }
 
     private void DeadCheck(Snake snake)
     {
-        bool state_x = (snake.snake_head.X <= 0 || snake.snake_head.X >= Renderer.map_width - 1);
-        bool state_y = (snake.snake_head.Y <= 0 || snake.snake_head.Y >= Renderer.map_height - 1);
-        bool hitSelf = snake.Body.Skip(1).Contains(snake.snake_head);
+        bool state_x = (snake.Head.X <= 0 || snake.Head.X >= Renderer.MapWidth - 1);
+        bool state_y = (snake.Head.Y <= 0 || snake.Head.Y >= Renderer.MapHeight - 1);
+        bool hitSelf = snake.Body.Skip(1).Contains(snake.Head);
         if (state_x || state_y || hitSelf)
         {
-            gamestate = GameState.dead;
+            _gameState = GameState.Dead;
         }
     }
 
     private void EatFood(Snake snake)
     {
-        bool eatfood = Foodlist.Contains(snake.snake_head);
+        bool eatfood = _foodList.Contains(snake.Head);
         if (!eatfood)
         {
             return;
         }
 
-        snake.grow();
-        var FoodPosition = snake.snake_head;
-        Foodlist.Remove(FoodPosition);
-        score += 3;
-        if (GameRunspeed > 120)
+        snake.Grow();
+        var FoodPosition = snake.Head;
+        _foodList.Remove(FoodPosition);
+        _score += 3;
+        if (_gameRunspeed > 120)
         {
-            GameRunspeed -= 5;
+            _gameRunspeed -= 5;
         }
     }
 
     private bool GameRun(Snake snake)
     {
-        bool gamenext = gamestate == GameState.live && Gamerun_timer.ElapsedMilliseconds >= GameRunspeed;
+        bool gamenext = _gameState == GameState.Live && _gamerunTimer.ElapsedMilliseconds >= _gameRunspeed;
         if (!gamenext)
         {
             return false;
         }
         CreateFood(snake);
-        snake.move();
+        snake.Move();
         EatFood(snake);
         DeadCheck(snake);
 
-        Gamerun_timer.Restart();
+        _gamerunTimer.Restart();
         return true;
     }
 
     public void StartGame(Snake snake)
     {
-        while (gamestate is GameState.live or GameState.pause)
+        while (_gameState is GameState.Live or GameState.Pause)
         {
             HandleInput(snake);
-            if (gamestate == GameState.exit)
+            if (_gameState == GameState.Exit)
                 break;
 
             if (GameRun(snake))
             {
-                Renderer.DrawFrame(score, Foodlist, snake);
+                Renderer.DrawFrame(_score, _foodList, snake);
             }
 
             Thread.Sleep(10);
@@ -170,7 +170,7 @@ class Game
 
     public GameControl GameOver()
     {
-        Renderer.DrawGameover(score);
+        Renderer.DrawGameover(_score);
 
         while (true)
         {

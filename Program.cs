@@ -13,7 +13,7 @@ while (true)
 
     game.StartGame(yuki);
 
-    if (game.gameState == Game.GameState.dead)
+    if (game.State == Game.GameState.Dead)
     {
         if (game.GameOver() == Game.GameControl.Restart)
         {

@@ -2,12 +2,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 public class Snake
 {
-    private readonly List<Point> body = new();
-    public IReadOnlyList<Point> Body => body;
+    private readonly List<Point> _body = new();
+    public IReadOnlyList<Point> Body => _body;
 
-    public Point snake_head => body[0];
-    public Point snake_tail => body[^1];
-    private Point snake_oldtail;
+    public Point Head => _body[0];
+    public Point Tail => _body[^1];
+    private Point oldTail;
     public enum Direction
     {
         Up,
@@ -16,21 +16,19 @@ public class Snake
         Right
     }
 
-    private Direction currrentDirection;
-    public Direction CurrrentDirection => currrentDirection;
+    private Direction _currentDirection;
+    public Direction CurrentDirection => _currentDirection;
     public Snake()
     {
-        body = [new(20, 10), new(19, 10), new(18, 10)];
-        snake_oldtail = new Point(0, 0);
+        _body = [new(20, 10), new(19, 10), new(18, 10)];
+        oldTail = new Point(0, 0);
 
-        this.currrentDirection = Direction.Right;
+        _currentDirection = Direction.Right;
     }
 
-    public double speed { get; private set; }
-
-    private Point newhead()
+    private Point GetNewHead()
     {
-        Point delta = currrentDirection switch
+        Point delta = _currentDirection switch
         {
             Direction.Up => new Point(0, -1),
             Direction.Down => new Point(0, 1),
@@ -39,7 +37,6 @@ public class Snake
             _ => throw new ArgumentException()
         };
 
-        Point Head = body[0];
         Point newHead = new Point(
             Head.X + delta.X,
             Head.Y + delta.Y
@@ -47,17 +44,17 @@ public class Snake
 
         return newHead;
     }
-    public void move()
+    public void Move()
     {
-        snake_oldtail = body[^1];
-        Point newHead = newhead();
-        body.Insert(0, newHead);
-        body.RemoveAt(body.Count - 1);
+        oldTail = _body[^1];
+        Point newHead = GetNewHead();
+        _body.Insert(0, newHead);
+        _body.RemoveAt(_body.Count - 1);
     }
 
     public void Turn(Direction newDirection)
     {
-        bool isOpposite = (currrentDirection, newDirection) switch
+        bool isOpposite = (_currentDirection, newDirection) switch
         {
             (Direction.Up, Direction.Down) => true,
             (Direction.Down, Direction.Up) => true,
@@ -68,13 +65,13 @@ public class Snake
 
         if(!isOpposite)
         {
-            currrentDirection = newDirection;
+            _currentDirection = newDirection;
         }
     }
 
-    public void grow()
+    public void Grow()
     {
-        body.Add(snake_oldtail);
+        _body.Add(oldTail);
     }
 }
 
