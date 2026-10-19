@@ -31,7 +31,7 @@ class Game
         this.score = 0;
         GameRunspeed = 200;
     }
-    public void Create_food(Snake snake)
+    private void CreateFood(Snake snake)
     {
         bool incorrect_food;
         do
@@ -49,53 +49,61 @@ class Game
             }
         } while (incorrect_food);
     }
-    //游戏主循环
+
+    private void HandleInput(Snake snake)
+    {
+        if (!Console.KeyAvailable)
+            return;
+
+        ConsoleKey key = Console.ReadKey(true).Key;
+
+        if (key == ConsoleKey.Escape)
+        {
+            gamestate = GameState.exit;
+            return;
+        }
+
+        if (key == ConsoleKey.Spacebar)
+        {
+            if (gamestate == GameState.live)
+            {
+                gamestate = GameState.pause;
+                Gamerun_timer.Stop();
+                Foodcreate_timer.Stop();
+            }
+            else if (gamestate == GameState.pause)
+            {
+                gamestate = GameState.live;
+                Gamerun_timer.Start();
+                Foodcreate_timer.Start();
+            }
+        }
+
+        if (gamestate != GameState.pause)
+        {
+            Snake.Direction? Newdiretion = key switch
+            {
+                ConsoleKey.UpArrow => Snake.Direction.Up,
+                ConsoleKey.DownArrow => Snake.Direction.Down,
+                ConsoleKey.LeftArrow => Snake.Direction.Left,
+                ConsoleKey.RightArrow => Snake.Direction.Right,
+                _ => null
+            };
+            if (Newdiretion is { } direction)
+            {
+                snake.Turn(direction);
+            }
+        }
+
+    }
+
     public void StartGame(Snake snake, Renderer renderer)
     {
-        while (gamestate == GameState.live || gamestate == GameState.pause)
+        while (gamestate is GameState.live or GameState.pause)
         {
-            if (Console.KeyAvailable)
-            {
-                ConsoleKey key = Console.ReadKey(true).Key;
-
-                //暂停与退出判断
-                if (key == ConsoleKey.Escape)
-                {
-                    gamestate = GameState.exit;
-                    break;
-                }
-
-                if (key == ConsoleKey.Spacebar)
-                {
-                    if (gamestate == GameState.live)
-                    {
-                        gamestate = GameState.pause;
-                        Gamerun_timer.Stop();
-                        Foodcreate_timer.Stop();
-                    }
-                    else if (gamestate == GameState.pause)
-                    {
-                        gamestate = GameState.live;
-                        Gamerun_timer.Start();
-                        Foodcreate_timer.Start();
-                    }
-                }
-
-                //方向
-                if (gamestate != GameState.pause)
-                {
-                    Snake.Direction Newdiretion = key switch
-                    {
-                        ConsoleKey.UpArrow => Snake.Direction.Up,
-                        ConsoleKey.DownArrow => Snake.Direction.Down,
-                        ConsoleKey.LeftArrow => Snake.Direction.Left,
-                        ConsoleKey.RightArrow => Snake.Direction.Right,
-                        _ => snake.CurrrentDirection
-                    };
-                    snake.Turn(Newdiretion);
-                }
-
-            }
+            HandleInput(snake);
+            if (gamestate == GameState.exit)
+                break;
 
             //游戏运行/画面绘制循环(200ms)
             if (gamestate == GameState.live && Gamerun_timer.ElapsedMilliseconds >= GameRunspeed)
@@ -124,7 +132,7 @@ class Game
             //食物生成循环（5s）
             if (gamestate == GameState.live && Foodcreate_timer.ElapsedMilliseconds >= 5000)
             {
-                Create_food(snake);
+                CreateFood(snake);
                 Foodcreate_timer.Restart();
             }
 
