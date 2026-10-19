@@ -36,10 +36,9 @@ class Game
         bool incorrect_food;
         do
         {
-            Random random = new Random();
             var new_food = new Point(
-            random.Next(2, Renderer.map_width - 2),
-            random.Next(2, Renderer.map_height - 2)
+            Random.Shared.Next(2, Renderer.map_width - 2),
+            Random.Shared.Next(2, Renderer.map_height - 2)
             );
 
             incorrect_food = snake.Body.Contains(new_food) || Foodlist.Contains(new_food);
