@@ -74,7 +74,7 @@ public static class Renderer
         }
     }
 
-    public static void RenderFrame(int score,List<Point> foodList, Snake snake)
+    public static void RenderFrame(int score, List<Point> foodList, Snake snake)
     {
         Console.Clear();
 
@@ -83,6 +83,11 @@ public static class Renderer
         DrawFooter();
         DrawFood(foodList);
         DrawSnake(snake);
+    }
+
+    public static void DrawPause()
+    {
+        DrawCenteredText(13, ConsoleColor.Blue, "P A U S E");
     }
     public static void DrawGameOver(int score)
     {

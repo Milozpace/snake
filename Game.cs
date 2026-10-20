@@ -51,6 +51,7 @@ class Game
             if (State == GameState.Live)
             {
                 State = GameState.Pause;
+                Renderer.DrawPause();
                 _gamerunTimer.Stop();
                 _foodCreateTimer.Stop();
             }
