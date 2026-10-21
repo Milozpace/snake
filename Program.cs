@@ -8,14 +8,16 @@ Console.CursorVisible = false;
 
 while (true)
 {
+    GameConfig config = new();
     Snake yuki = new();
-    Game game = new();
+    Game game = new(config);
+    Renderer renderer = new(config);
 
-    game.StartGame(yuki);
+    game.StartGame(yuki, renderer);
 
     if (game.State == Game.GameState.Dead)
     {
-        if (game.GameOver() == Game.GameControl.Restart)
+        if (game.GameOver(renderer) == Game.GameControl.Restart)
         {
             continue;
         }
