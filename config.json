@@ -1,0 +1,6 @@
+{
+    "MapWidth": 40,
+    "MapHeight": 20,
+    "InitMoveIntervalMs": 100,
+    "FoodSpawnIntervalMs": 5000
+}
