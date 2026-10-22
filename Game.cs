@@ -1,26 +1,21 @@
 using System.Data;
 using System.Diagnostics;
 
-class Game
+public class Game
 {
     public enum GameState
     {
-        Live,
-        Dead,
-        Pause,
-        Exit
+        Playing,
+        Paused,
+        GameOver
     }
-
-    public enum GameControl
-    {
-        End,
-        Restart
-    }
-
-    private readonly List<Point> _foodList = [];
     public GameState State { get; private set; }
+    public int Score { get; private set; }
 
-    private int _score;
+    public Snake snake1;
+    private readonly List<Point> _foodList = [];
+    public IReadOnlyList<Point> FoodList => _foodList;
+
     private readonly Stopwatch _gamerunTimer = Stopwatch.StartNew();
     private readonly Stopwatch _foodCreateTimer = Stopwatch.StartNew();
 
@@ -28,68 +23,71 @@ class Game
     private readonly GameConfig config;
     private int GameMoveIntervalMs;
 
-
+    //Constructor
     public Game(GameConfig config)
     {
-        this.State = GameState.Live;
-        this._score = 0;
-
         this.config = config;
+        Score = 0;
+        State = GameState.Playing;
+
+        snake1 = new();
         GameMoveIntervalMs = config.InitMoveIntervalMs;
     }
 
-
-    private void HandleInput(Snake snake, Renderer renderer)
+    //键盘输入接口
+    public void TogglePause()
     {
-        if (!Console.KeyAvailable)
-            return;
-
-        ConsoleKey key = Console.ReadKey(true).Key;
-
-        if (key == ConsoleKey.Escape)
+        State = State switch
         {
-            State = GameState.Exit;
-            return;
-        }
-
-        if (key == ConsoleKey.Spacebar)
+            GameState.Playing => GameState.Paused,
+            GameState.Paused => GameState.Playing,
+            _ => State
+        };
+        switch (State)
         {
-            if (State == GameState.Live)
-            {
-                State = GameState.Pause;
-                renderer.DrawPause();
-                _gamerunTimer.Stop();
-                _foodCreateTimer.Stop();
-            }
-            else if (State == GameState.Pause)
-            {
-                State = GameState.Live;
-                _gamerunTimer.Start();
-                _foodCreateTimer.Start();
-            }
+            case GameState.Paused:
+                {
+                    _gamerunTimer.Stop();
+                    _foodCreateTimer.Stop();
+                    break;
+                }
+            case GameState.Playing:
+                {
+                    _gamerunTimer.Start();
+                    _foodCreateTimer.Start();
+                    break;
+                }
         }
-
-        if (State != GameState.Pause)
-        {
-            Snake.Direction? newdiretion = key switch
-            {
-                ConsoleKey.UpArrow => Snake.Direction.Up,
-                ConsoleKey.DownArrow => Snake.Direction.Down,
-                ConsoleKey.LeftArrow => Snake.Direction.Left,
-                ConsoleKey.RightArrow => Snake.Direction.Right,
-                _ => null
-            };
-            if (newdiretion is { } direction)
-            {
-                snake.Turn(direction);
-            }
-        }
-
+        ;
     }
 
-    private void SpawnFoodIfDue(Snake snake)
+    public void ToggleDirection(Snake snake, Snake.Direction direction)
     {
-        bool isFoodSpawnDue = State == GameState.Live && _foodCreateTimer.ElapsedMilliseconds >= config.FoodSpawnIntervalMs;
+        snake.TryTurn(direction);
+    }
+
+    //处理游戏-接口
+    public bool UpdateGameIfdue()
+    {
+        bool gamenext = State == GameState.Playing && _gamerunTimer.ElapsedMilliseconds >= GameMoveIntervalMs;
+        if (!gamenext)
+        {
+            return false;
+        }
+
+        SpawnFoodIfDue();
+        snake1.Move();
+        EatFood();
+        CheckForCollision();
+
+        _gamerunTimer.Restart();
+        return true;
+    }
+
+    //游戏处理
+    private void SpawnFoodIfDue()
+    {
+        bool isFoodSpawnDue = State == GameState.Playing && _foodCreateTimer.ElapsedMilliseconds >= config.FoodSpawnIntervalMs;
         if (!isFoodSpawnDue)
         {
             return;
@@ -103,7 +101,7 @@ class Game
             Random.Shared.Next(2, config.MapHeight - 2)
             );
 
-            isOccupied = snake.Body.Contains(newFood) || _foodList.Contains(newFood);
+            isOccupied = snake1.Body.Contains(newFood) || _foodList.Contains(newFood);
             if (!isOccupied)
             {
                 _foodList.Add(newFood);
@@ -113,86 +111,35 @@ class Game
         _foodCreateTimer.Restart();
     }
 
-    private void CheckForCollision(Snake snake)
+    private void CheckForCollision()
     {
-        bool state_x = (snake.Head.X <= 0 || snake.Head.X >= config.MapWidth - 1);
-        bool state_y = (snake.Head.Y <= 0 || snake.Head.Y >= config.MapHeight - 1);
-        bool hitSelf = snake.Body.Skip(1).Contains(snake.Head);
+        bool state_x = (snake1.Head.X <= 0 || snake1.Head.X >= config.MapWidth - 1);
+        bool state_y = (snake1.Head.Y <= 0 || snake1.Head.Y >= config.MapHeight - 1);
+        bool hitSelf = snake1.Body.Skip(1).Contains(snake1.Head);
         if (state_x || state_y || hitSelf)
         {
-            State = GameState.Dead;
+            State = GameState.GameOver;
         }
     }
 
-    private void EatFood(Snake snake)
+    private void EatFood()
     {
-        bool eatfood = _foodList.Contains(snake.Head);
+        bool eatfood = _foodList.Contains(snake1.Head);
         if (!eatfood)
         {
             return;
         }
 
-        snake.Grow();
-        var foodPosition = snake.Head;
+        snake1.Grow();
+        var foodPosition = snake1.Head;
         _foodList.Remove(foodPosition);
-        _score += 3;
+        Score += 3;
         if (GameMoveIntervalMs > 120)
         {
             GameMoveIntervalMs -= 5;
         }
     }
 
-    private bool UpdateGameIfdue(Snake snake)
-    {
-        bool gamenext = State == GameState.Live && _gamerunTimer.ElapsedMilliseconds >= GameMoveIntervalMs;
-        if (!gamenext)
-        {
-            return false;
-        }
-        SpawnFoodIfDue(snake);
-        snake.Move();
-        EatFood(snake);
-        CheckForCollision(snake);
 
-        _gamerunTimer.Restart();
-        return true;
-    }
-
-    public void StartGame(Snake snake, Renderer renderer)
-    {
-        while (State is GameState.Live or GameState.Pause)
-        {
-            HandleInput(snake, renderer);
-            if (State == GameState.Exit)
-                break;
-
-            if (UpdateGameIfdue(snake))
-            {
-                renderer.RenderFrame(_score, _foodList, snake);
-            }
-
-            Thread.Sleep(10);
-        }
-    }
-
-    public GameControl GameOver(Renderer renderer)
-    {
-        renderer.DrawGameOver(_score);
-
-        while (true)
-        {
-            ConsoleKey key = Console.ReadKey(true).Key;
-
-            switch (key)
-            {
-                case ConsoleKey.Enter:
-                    return GameControl.Restart;
-                case ConsoleKey.Spacebar:
-                    return GameControl.End;
-                case ConsoleKey.Escape:
-                    return GameControl.End;
-            }
-        }
-    }
 }
 

@@ -8,7 +8,8 @@ public class Renderer
     {
         this.config = config;
     }
-    private void DrawGridCell(int x, int y, ConsoleColor color)
+    //工具方法
+    private static void DrawGridCell(int x, int y, ConsoleColor color)
     {
         Console.ForegroundColor = color;
         Console.SetCursorPosition(MapOriginX + x * 2, MapOriginY + y);
@@ -16,7 +17,7 @@ public class Renderer
         Console.ResetColor();
     }
 
-    private void DrawText(int x, int y, ConsoleColor color, string content)
+    private static void DrawText(int x, int y, ConsoleColor color, string content)
     {
         Console.ForegroundColor = color;
         Console.SetCursorPosition(x, y);
@@ -44,6 +45,7 @@ public class Renderer
         }
     }
 
+    //调用方法
     private void DrawHeader(int score)
     {
         DrawText(3, 1, ConsoleColor.DarkGreen, "S N A K E");
@@ -58,7 +60,7 @@ public class Renderer
     }
 
 
-    private void DrawFood(List<Point> foodList)
+    private void DrawFood(IReadOnlyList<Point> foodList)
     {
         foreach (Point food in foodList)
         {
@@ -76,27 +78,36 @@ public class Renderer
         }
     }
 
-    public void RenderFrame(int score, List<Point> foodList, Snake snake)
+    private void DrawPause()
+    {
+        DrawCenteredText(13, ConsoleColor.Blue, "P A U S E");
+    }
+
+    //提供的api
+    public void RenderFrame(Game game, Snake snake)
     {
         Console.Clear();
 
         DrawMap();
-        DrawHeader(score);
+        DrawHeader(game.Score);
         DrawFooter();
-        DrawFood(foodList);
+        DrawFood(game.FoodList);
         DrawSnake(snake);
+
+        if (game.State == Game.GameState.Paused)
+        {
+            DrawPause();
+        }
     }
 
-    public void DrawPause()
-    {
-        DrawCenteredText(13, ConsoleColor.Blue, "P A U S E");
-    }
-    public void DrawGameOver(int score)
+    public void DrawGameOver(Game game)
     {
         DrawCenteredText(9, ConsoleColor.Red, "G A M E  O V E R");
-        DrawCenteredText(12, ConsoleColor.White, $"SCORE: {score}");
+        DrawCenteredText(12, ConsoleColor.White, $"SCORE: {game.Score}");
         DrawCenteredText(15, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
-        DrawCenteredText(16, ConsoleColor.DarkGray, " or 'SPACE' TO EXIT");
+        DrawCenteredText(16, ConsoleColor.DarkGray, " or 'ESC' TO EXIT");
     }
+
+
 
 }

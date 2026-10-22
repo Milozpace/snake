@@ -1,6 +1,5 @@
 public class GameConfig
 {
-    //但是offset是渲染器的工作啦！
     public int MapWidth { get; init; }
     public int MapHeight { get; init; }
 

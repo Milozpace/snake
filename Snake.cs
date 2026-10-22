@@ -2,11 +2,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 public class Snake
 {
-    private readonly List<Point> _body = new();
+    private readonly List<Point> _body = [];
     public IReadOnlyList<Point> Body => _body;
 
     public Point Head => _body[0];
-    public Point Tail => _body[^1];
     private Point previousTailPosition;
     public enum Direction
     {
@@ -26,6 +25,7 @@ public class Snake
         _currentDirection = Direction.Right;
     }
 
+    //私有工具方法
     private Point CalculateNextHead()
     {
         Point delta = _currentDirection switch
@@ -44,6 +44,8 @@ public class Snake
 
         return newHead;
     }
+
+    //主要调用的操作方法
     public void Move()
     {
         previousTailPosition = _body[^1];
@@ -52,7 +54,7 @@ public class Snake
         _body.RemoveAt(_body.Count - 1);
     }
 
-    public void Turn(Direction newDirection)
+    public void TryTurn(Direction newDirection)
     {
         bool isOpposite = (_currentDirection, newDirection) switch
         {
@@ -63,7 +65,7 @@ public class Snake
             _ => false
         };
 
-        if(!isOpposite)
+        if (!isOpposite)
         {
             _currentDirection = newDirection;
         }
