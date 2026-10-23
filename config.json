@@ -2,5 +2,6 @@
     "MapWidth": 40,
     "MapHeight": 20,
     "InitMoveIntervalMs": 200,
+    "SimStepMs": 5,
     "FoodSpawnIntervalMs": 5000
 }

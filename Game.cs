@@ -1,5 +1,6 @@
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 public class Game
 {
@@ -16,8 +17,16 @@ public class Game
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
 
-    private readonly Stopwatch _gamerunTimer = Stopwatch.StartNew();
-    private readonly Stopwatch _foodCreateTimer = Stopwatch.StartNew();
+    private readonly Stopwatch _clock = Stopwatch.StartNew();
+
+    private long _lastUpdateMs = 0;
+    private long _accumulatorMs = 0;
+
+    public int SimStepMs { get; init; }
+
+    private readonly int InitFoodSpawnIntervalMs = 5000;
+    private int _foodSpawnCooldownMs;
+
 
     //config
     private readonly GameConfig config;
@@ -30,8 +39,11 @@ public class Game
         Score = 0;
         State = GameState.Playing;
 
-        snake1 = new();
+        SimStepMs = 5;
+
+        snake1 = new(config);
         GameMoveIntervalMs = config.InitMoveIntervalMs;
+        _foodSpawnCooldownMs = InitFoodSpawnIntervalMs;
     }
 
     //键盘输入接口
@@ -47,18 +59,15 @@ public class Game
         {
             case GameState.Paused:
                 {
-                    _gamerunTimer.Stop();
-                    _foodCreateTimer.Stop();
+                    _clock.Stop();
                     break;
                 }
             case GameState.Playing:
                 {
-                    _gamerunTimer.Start();
-                    _foodCreateTimer.Start();
+                    _clock.Start();
                     break;
                 }
         }
-        ;
     }
 
     public void ToggleDirection(Snake snake, Snake.Direction direction)
@@ -67,28 +76,40 @@ public class Game
     }
 
     //处理游戏-接口
+    //////////////////////////////////////！！！////////////////////（5ms步长调用点）
     public bool UpdateGameIfdue()
     {
-        bool gamenext = State == GameState.Playing && _gamerunTimer.ElapsedMilliseconds >= GameMoveIntervalMs;
-        if (!gamenext)
+        if (State != GameState.Playing)
         {
             return false;
         }
+        long now = _clock.ElapsedMilliseconds;
+        _accumulatorMs += now - _lastUpdateMs;
+        _lastUpdateMs = now;
 
-        SpawnFoodIfDue();
-        snake1.Move();
-        EatFood();
-        CheckForCollision();
+        if (_accumulatorMs > SimStepMs)
+        {
+            //由游戏按更新步长更新游戏状态啦🐱
+            SpawnFoodIfDue();
+            snake1.Move();
+            //但是后面应该把更新接口独立更新一下，放在最前面，而不是让move和spawn方法去管理
 
-        _gamerunTimer.Restart();
-        return true;
+            //以下也是dirty才调用（但并dirty重置需要在renderer处清零）
+            EatFood();
+            CheckForCollision();
+            return true;
+        }
+        else
+            return false;
+
+
     }
 
     //游戏处理
     private void SpawnFoodIfDue()
     {
-        bool isFoodSpawnDue = State == GameState.Playing && _foodCreateTimer.ElapsedMilliseconds >= config.FoodSpawnIntervalMs;
-        if (!isFoodSpawnDue)
+        _foodSpawnCooldownMs -= SimStepMs;
+        if (_foodSpawnCooldownMs > 0)
         {
             return;
         }
@@ -107,8 +128,8 @@ public class Game
                 _foodList.Add(newFood);
             }
         } while (isOccupied);
-
-        _foodCreateTimer.Restart();
+        _foodSpawnCooldownMs += InitFoodSpawnIntervalMs;
+        //dirty? 感觉现在就很需要一些记录这些变化的常量吧
     }
 
     private void CheckForCollision()

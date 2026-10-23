@@ -19,31 +19,6 @@ class GameRunner
         _isRunning = true;
     }
 
-    //运行游戏
-    public void Rungame()
-    {
-        while (_isRunning)
-        {
-            while (game.State != Game.GameState.GameOver && _isRunning)
-            {
-                HandlePlayingInput();
-                game.UpdateGameIfdue();
-                renderer.RenderFrame(game, game.snake1);
-
-                Thread.Sleep(10);
-            }
-
-            if (_isRunning)
-            {
-                renderer.DrawGameOver(game);
-                if (HandleGameOverInput() == true)
-                {
-                    game = new(config);
-                    continue;
-                }
-            }
-        }
-    }
 
     //键盘输入接口 （to game）
     private void HandlePlayingInput()
@@ -101,6 +76,32 @@ class GameRunner
             }
         }
 
+    }
+
+    //运行游戏
+    public void Rungame()
+    {
+        while (_isRunning)
+        {
+            while (game.State != Game.GameState.GameOver && _isRunning)
+            {
+                HandlePlayingInput();
+                game.UpdateGameIfdue();
+                renderer.RenderFrame(game, game.snake1);
+
+                Thread.Sleep(1);
+            }
+
+            if (_isRunning)
+            {
+                renderer.DrawGameOver(game);
+                if (HandleGameOverInput() == true)
+                {
+                    game = new(config);
+                    continue;
+                }
+            }
+        }
     }
 
 }

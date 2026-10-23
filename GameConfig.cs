@@ -4,6 +4,7 @@ public class GameConfig
     public int MapHeight { get; init; }
 
     public int InitMoveIntervalMs { get; init; }
+    public int SimStepMs { get; init; }
     public int FoodSpawnIntervalMs { get; init; }
 
 }
