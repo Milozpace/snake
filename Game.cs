@@ -98,7 +98,7 @@ public class Game
             EatFood();
             CheckForCollision();
 
-            _accumulatorMs += SimStepMs;
+            _accumulatorMs -= SimStepMs;
             return true;
         }
         else
