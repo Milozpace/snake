@@ -96,8 +96,9 @@ public class Snake
     public void Grow()
     {
         _body.Add(previousTailPosition);
+        if (_moveIntervalMs > 120)
+            _moveIntervalMs -= 3;
     }
 }
-
 
 public record Point(int X, int Y);

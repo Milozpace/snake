@@ -30,7 +30,7 @@ public class Game
 
     //config
     private readonly GameConfig config;
-    private int GameMoveIntervalMs;
+
 
     //Constructor
     public Game(GameConfig config)
@@ -42,7 +42,6 @@ public class Game
         SimStepMs = 5;
 
         snake1 = new(config);
-        GameMoveIntervalMs = config.InitMoveIntervalMs;
         _foodSpawnCooldownMs = InitFoodSpawnIntervalMs;
     }
 
@@ -157,10 +156,6 @@ public class Game
         var foodPosition = snake1.Head;
         _foodList.Remove(foodPosition);
         Score += 3;
-        if (GameMoveIntervalMs > 120)
-        {
-            GameMoveIntervalMs -= 5;
-        }
     }
 
 
