@@ -97,6 +97,8 @@ public class Game
             //以下也是dirty才调用（但并dirty重置需要在renderer处清零）
             EatFood();
             CheckForCollision();
+
+            _accumulatorMs += SimStepMs;
             return true;
         }
         else
