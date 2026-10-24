@@ -35,8 +35,7 @@ class GameRunner
             _isRunning = false;
             return;
         }
-
-        if (key == ConsoleKey.Spacebar)
+        else if (key == ConsoleKey.Spacebar)
         {
             game.TogglePause();
         }
@@ -52,9 +51,10 @@ class GameRunner
                 _ => null
             };
             if (newdirection is { } direction)
-            {
                 game.ToggleDirection(game.snake1, direction);
-            }
+
+            if (key == ConsoleKey.M)
+                game.ToggleBoost();
         }
     }
 
@@ -89,6 +89,12 @@ class GameRunner
             {
                 HandlePlayingInput();
                 game.UpdateGameIfdue();
+
+                if (game.State == Game.GameState.GameOver)
+                {
+                    renderer.RenderFrame(game, game.snake1);
+                    continue;
+                }
 
                 if (_renderClock.ElapsedMilliseconds >= 40)
                 {

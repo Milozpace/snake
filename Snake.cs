@@ -8,9 +8,18 @@ public class Snake
     public Point Head => _body[0];
     private Point previousTailPosition;
 
-    private readonly int InitMoveIntervalMs = 200;
-    private int _moveIntervalMs;
+    //Move
+    private readonly int InitMoveIntervalMs;
+    private readonly int BoostMoveIntervalMs;
+    private int _baseMoveIntervalMs;
+
     private int _moveCooldownMs;
+
+    private int CurrentMoveIntervalMs =>
+       CurrentSkillState == SkillState.Active
+           ? BoostMoveIntervalMs
+           : _baseMoveIntervalMs;
+
     public enum Direction
     {
         Up,
@@ -19,10 +28,23 @@ public class Snake
         Right
     }
 
+    //Skill
+    public enum SkillState
+    {
+        CoolingDown,
+        Ready,
+        Active
+    }
+
+    public SkillState CurrentSkillState { get; private set; } = SkillState.Ready;
+    private readonly int SkillCooldownMs;
+    private readonly int SkillActiveMs;
+    private int _skillCooldownTimerMs;
+    private int _skillActiveTimerMs = 0;
+
     private Direction _currentDirection;
     public Direction CurrentDirection => _currentDirection;
 
-    public int MoveCooldownMs { get; private set; }
 
     //共有数据
     private readonly int SimStepMs;
@@ -31,11 +53,14 @@ public class Snake
         _body = [new(20, 10), new(19, 10), new(18, 10)];
         previousTailPosition = new Point(0, 0);
 
-        MoveCooldownMs = config.InitMoveIntervalMs;
+        InitMoveIntervalMs = 200;
         _currentDirection = Direction.Right;
-        _moveIntervalMs = InitMoveIntervalMs;
-        _moveCooldownMs = InitMoveIntervalMs;
+        _baseMoveIntervalMs = InitMoveIntervalMs;
+        BoostMoveIntervalMs = 100;
+        SkillCooldownMs = 10000;
+        SkillActiveMs = 5000;
 
+        _moveCooldownMs = _baseMoveIntervalMs;
         SimStepMs = 5;
     }
 
@@ -58,11 +83,36 @@ public class Snake
 
         return newHead;
     }
+    private void UpdateSkillState()
+    {
+        if (CurrentSkillState == SkillState.Ready)
+            return;
+        if (CurrentSkillState == SkillState.CoolingDown)
+        {
+            _skillCooldownTimerMs = Math.Max(0, _skillCooldownTimerMs - SimStepMs);
+            if (_skillCooldownTimerMs == 0)
+                CurrentSkillState = SkillState.Ready;
+        }
+        else if (CurrentSkillState == SkillState.Active)
+        {
+            _skillActiveTimerMs = Math.Max(0, _skillActiveTimerMs - SimStepMs);
+            if (_skillActiveTimerMs == 0)
+            {
+                CurrentSkillState = SkillState.CoolingDown;
+                _skillCooldownTimerMs = SkillCooldownMs;
+            }
+
+        }
+    }
 
     //主要调用的操作方法
+    public void UpdateSnake()
+    {
+        UpdateSkillState();
+    }
     public void Move()
     {
-        _moveCooldownMs -= SimStepMs;//update 
+        _moveCooldownMs -= SimStepMs;
         if (_moveCooldownMs > 0)
         {
             return;
@@ -73,7 +123,7 @@ public class Snake
         _body.Insert(0, newHead);
         _body.RemoveAt(_body.Count - 1);
 
-        _moveCooldownMs += _moveIntervalMs;
+        _moveCooldownMs += CurrentMoveIntervalMs;
     }
 
     public void TryTurn(Direction newDirection)
@@ -96,8 +146,21 @@ public class Snake
     public void Grow()
     {
         _body.Add(previousTailPosition);
-        if (_moveIntervalMs > 120)
-            _moveIntervalMs -= 3;
+
+        _baseMoveIntervalMs = Math.Max(120, _baseMoveIntervalMs - 3);
+    }
+
+    public bool TryBoost()
+    {
+        if (CurrentSkillState == SkillState.Ready)
+        {
+            CurrentSkillState = SkillState.Active;
+            _skillActiveTimerMs = SkillActiveMs;
+            _moveCooldownMs = Math.Max(0, Math.Min(_moveCooldownMs, CurrentMoveIntervalMs));
+            return true;
+        }
+        else
+            return false;
     }
 }
 

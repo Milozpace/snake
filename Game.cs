@@ -73,26 +73,27 @@ public class Game
     {
         snake.TryTurn(direction);
     }
+    public void ToggleBoost()
+    {
+        snake1.TryBoost();
+    }
 
     //处理游戏-接口
     public bool UpdateGameIfdue()
     {
         if (State != GameState.Playing)
-        {
             return false;
-        }
+
         long now = _clock.ElapsedMilliseconds;
         _accumulatorMs += now - _lastUpdateMs;
         _lastUpdateMs = now;
 
         if (_accumulatorMs > SimStepMs)
         {
-            //由游戏按更新步长更新游戏状态啦🐱
+            snake1.UpdateSnake();
             SpawnFoodIfDue();
             snake1.Move();
-            //但是后面应该把更新接口独立更新一下，放在最前面，而不是让move和spawn方法去管理
 
-            //以下也是dirty才调用（但并dirty重置需要在renderer处清零）
             EatFood();
             CheckForCollision();
 
@@ -129,7 +130,6 @@ public class Game
             }
         } while (isOccupied);
         _foodSpawnCooldownMs += InitFoodSpawnIntervalMs;
-        //dirty? 感觉现在就很需要一些记录这些变化的常量吧
     }
 
     private void CheckForCollision()
