@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-string json = File.ReadAllText("config.json");
+string json = File.ReadAllText("configClassic.json");
 GameConfig config = 
     JsonSerializer.Deserialize<GameConfig>(json) 
     ?? throw new InvalidDataException("Invalid game configuration");
