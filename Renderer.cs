@@ -100,8 +100,8 @@ public class Renderer
 
     private void DrawFooter()
     {
-        DrawCanvaText(1, 20, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
-        DrawCanvaText(config.MapWidth - 5, 20, ConsoleColor.DarkGray, "ESC QUIT");
+        DrawCanvaText(1, config.MapHeight, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
+        DrawCanvaText(config.MapWidth - 5, config.MapHeight, ConsoleColor.DarkGray, "ESC QUIT");
     }
 
 

@@ -1,3 +1,4 @@
+using System.Data;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 public class Snake
@@ -6,7 +7,7 @@ public class Snake
     public IReadOnlyList<Point> Body => _body;
 
     public Point Head => _body[0];
-    private Point previousTailPosition;
+    private Point previousTailPosition = new(0, 0);
 
     //Move
 
@@ -19,7 +20,9 @@ public class Snake
        CurrentSkillState == SkillState.Active
            ? BoostMoveIntervalMs
            : _baseMoveIntervalMs;
-
+    //Grow
+    private readonly int MinMoveIntervalMs;
+    private readonly int MoveIntervalDecreaseMs;
     public enum Direction
     {
         Up,
@@ -42,6 +45,7 @@ public class Snake
     private int _skillCooldownTimerMs;
     private int _skillActiveTimerMs = 0;
 
+
     private Direction _currentDirection;
     public Direction CurrentDirection => _currentDirection;
 
@@ -50,12 +54,19 @@ public class Snake
     private readonly int SimStepMs;
     public Snake(GameConfig config)
     {
-        _body = [new(20, 10), new(19, 10), new(18, 10)];
-        previousTailPosition = new Point(0, 0);
+        Point head = new(config.MapWidth / 2, config.MapHeight / 2);
+        _body = [
+            head,
+            new(head.X - 1, head.Y),
+            new(head.X - 2, head.Y)
+        ];
+
         _currentDirection = Direction.Right;
-        
+
         SimStepMs = config.SimStepMs;
         _baseMoveIntervalMs = config.InitMoveIntervalMs;
+        MinMoveIntervalMs = config.MinMoveIntervalMs;
+        MoveIntervalDecreaseMs = config.MoveIntervalDecreaseMs;
         BoostMoveIntervalMs = config.BoostMoveIntervalMs;
         SkillCooldownMs = config.SkillCooldownMs;
         SkillActiveMs = config.SkillActiveMs;
@@ -147,7 +158,7 @@ public class Snake
     {
         _body.Add(previousTailPosition);
 
-        _baseMoveIntervalMs = Math.Max(120, _baseMoveIntervalMs - 3);
+        _baseMoveIntervalMs = Math.Max(MinMoveIntervalMs, _baseMoveIntervalMs - MoveIntervalDecreaseMs);
     }
 
     public bool TryBoost()

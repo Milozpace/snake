@@ -12,6 +12,7 @@ public class Game
     }
     public GameState State { get; private set; }
     public int Score { get; private set; }
+    private readonly int FoodScore;
 
     public Snake snake1;
     private readonly List<Point> _foodList = [];
@@ -38,6 +39,7 @@ public class Game
         this.config = config;
         SimStepMs = config.SimStepMs;
         FoodSpawnIntervalMs = config.FoodSpawnIntervalMs;
+        FoodScore = config.FoodScore;
         _foodSpawnCooldownMs = FoodSpawnIntervalMs;
 
         State = GameState.Playing;
@@ -93,8 +95,8 @@ public class Game
             SpawnFoodIfDue();
             snake1.Move();
 
-            EatFood();
-            CheckForCollision();
+            CheckEatFood();
+            CheckCollision();
 
             _accumulatorMs -= SimStepMs;
             return true;
@@ -131,7 +133,7 @@ public class Game
         _foodSpawnCooldownMs += FoodSpawnIntervalMs;
     }
 
-    private void CheckForCollision()
+    private void CheckCollision()
     {
         bool state_x = (snake1.Head.X <= 0 || snake1.Head.X >= config.MapWidth - 1);
         bool state_y = (snake1.Head.Y <= 0 || snake1.Head.Y >= config.MapHeight - 1);
@@ -142,7 +144,7 @@ public class Game
         }
     }
 
-    private void EatFood()
+    private void CheckEatFood()
     {
         bool eatfood = _foodList.Contains(snake1.Head);
         if (!eatfood)
@@ -153,7 +155,7 @@ public class Game
         snake1.Grow();
         var foodPosition = snake1.Head;
         _foodList.Remove(foodPosition);
-        Score += 3;
+        Score += FoodScore;
     }
 
 
