@@ -1,7 +1,10 @@
 {
     "MapWidth": 40,
     "MapHeight": 20,
-    "InitMoveIntervalMs": 200,
     "SimStepMs": 5,
+    "InitMoveIntervalMs": 200,
+    "BoostMoveIntervalMs":100,
+    "SkillCooldownMs":10000,
+    "SkillActiveMs":5000,
     "FoodSpawnIntervalMs": 5000
 }

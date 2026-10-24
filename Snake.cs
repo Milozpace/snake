@@ -9,7 +9,7 @@ public class Snake
     private Point previousTailPosition;
 
     //Move
-    private readonly int InitMoveIntervalMs;
+
     private readonly int BoostMoveIntervalMs;
     private int _baseMoveIntervalMs;
 
@@ -52,16 +52,16 @@ public class Snake
     {
         _body = [new(20, 10), new(19, 10), new(18, 10)];
         previousTailPosition = new Point(0, 0);
-
-        InitMoveIntervalMs = 200;
         _currentDirection = Direction.Right;
-        _baseMoveIntervalMs = InitMoveIntervalMs;
-        BoostMoveIntervalMs = 100;
-        SkillCooldownMs = 10000;
-        SkillActiveMs = 5000;
+        
+        SimStepMs = config.SimStepMs;
+        _baseMoveIntervalMs = config.InitMoveIntervalMs;
+        BoostMoveIntervalMs = config.BoostMoveIntervalMs;
+        SkillCooldownMs = config.SkillCooldownMs;
+        SkillActiveMs = config.SkillActiveMs;
 
         _moveCooldownMs = _baseMoveIntervalMs;
-        SimStepMs = 5;
+
     }
 
     //私有工具方法

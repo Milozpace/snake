@@ -24,7 +24,7 @@ public class Game
 
     public int SimStepMs { get; init; }
 
-    private readonly int InitFoodSpawnIntervalMs = 5000;
+    private readonly int FoodSpawnIntervalMs;
     private int _foodSpawnCooldownMs;
 
 
@@ -36,13 +36,12 @@ public class Game
     public Game(GameConfig config)
     {
         this.config = config;
-        Score = 0;
+        SimStepMs = config.SimStepMs;
+        FoodSpawnIntervalMs = config.FoodSpawnIntervalMs;
+        _foodSpawnCooldownMs = FoodSpawnIntervalMs;
+
         State = GameState.Playing;
-
-        SimStepMs = 5;
-
         snake1 = new(config);
-        _foodSpawnCooldownMs = InitFoodSpawnIntervalMs;
     }
 
     //键盘输入接口
@@ -129,7 +128,7 @@ public class Game
                 _foodList.Add(newFood);
             }
         } while (isOccupied);
-        _foodSpawnCooldownMs += InitFoodSpawnIntervalMs;
+        _foodSpawnCooldownMs += FoodSpawnIntervalMs;
     }
 
     private void CheckForCollision()
