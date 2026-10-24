@@ -1,34 +1,79 @@
+using System.Reflection.PortableExecutable;
+using System.Text;
+
 public class Renderer
 {
+    private static readonly string[] AnsiForeground =
+    [
+        "\x1b[30m", // Black
+        "\x1b[34m", // DarkBlue
+        "\x1b[32m", // DarkGreen
+        "\x1b[36m", // DarkCyan
+        "\x1b[31m", // DarkRed
+        "\x1b[35m", // DarkMagenta
+        "\x1b[33m", // DarkYellow
+        "\x1b[37m", // Gray
+        "\x1b[90m", // DarkGray
+        "\x1b[94m", // Blue
+        "\x1b[92m", // Green
+        "\x1b[96m", // Cyan
+        "\x1b[91m", // Red
+        "\x1b[95m", // Magenta
+        "\x1b[93m", // Yellow
+        "\x1b[97m", // White
+    ];
+
+    private static string ToAnsi(ConsoleColor color) =>
+        AnsiForeground[(int)color];
     private readonly GameConfig config;
+    private FrameBuffer currentFrame;
+    private FrameBuffer previousFrame;
+    private bool isFirstFrame;
+
     private const int MapOriginX = 2;
     private const int MapOriginY = 3;
 
     public Renderer(GameConfig config)
     {
         this.config = config;
+        currentFrame = new(
+            MapOriginX + config.MapWidth * 2 + 10,
+            MapOriginY + config.MapHeight + 5
+        );
+        previousFrame = new(
+            MapOriginX + config.MapWidth * 2 + 10,
+            MapOriginY + config.MapHeight + 5
+        );
+
+        isFirstFrame = true;
     }
     //工具方法
-    private static void DrawGridCell(int x, int y, ConsoleColor color)
+    private void DrawCanvaCell(int x, int y, ConsoleColor color)
     {
-        Console.ForegroundColor = color;
-        Console.SetCursorPosition(MapOriginX + x * 2, MapOriginY + y);
-        Console.Write("██");
-        Console.ResetColor();
+        int screenX = MapOriginX + x * 2;
+        int screenY = MapOriginY + y;
+
+        currentFrame.SetCell(screenX, screenY, new('█', color));
+        currentFrame.SetCell(screenX + 1, screenY, new('█', color));
     }
 
-    private static void DrawText(int x, int y, ConsoleColor color, string content)
+    private void DrawCanvaText(int x, int y, ConsoleColor color, string content)
     {
-        Console.ForegroundColor = color;
-        Console.SetCursorPosition(x, y);
-        Console.Write(content);
-        Console.ResetColor();
+        int screenX = MapOriginX + x * 2;
+        int screenY = MapOriginY + y;
+
+        for (int i = 0; i < content.Length; i++)
+        {
+            char text = content[i];
+            currentFrame.SetCell(screenX + i, screenY, new(text, color));
+        }
     }
 
     private void DrawCenteredText(int y, ConsoleColor color, string content)
     {
-        int centerX = MapOriginX + (config.MapWidth - content.Length / 2);
-        DrawText(centerX, y, color, content);
+        int screenCenterX = (config.MapWidth * 2 - content.Length) / 4; ;
+
+        DrawCanvaText(screenCenterX, y, color, content);
     }
 
     private void DrawMap()
@@ -39,7 +84,7 @@ public class Renderer
             {
                 if (x == 0 || y == 0 || x == config.MapWidth - 1 || y == config.MapHeight - 1)
                 {
-                    DrawGridCell(x, y, ConsoleColor.DarkGray);
+                    DrawCanvaCell(x, y, ConsoleColor.DarkGray);
                 }
             }
         }
@@ -48,15 +93,15 @@ public class Renderer
     //调用方法
     private void DrawHeader(int score)
     {
-        DrawText(3, 1, ConsoleColor.DarkGreen, "S N A K E");
-        DrawText(65, 1, ConsoleColor.White, $"S C O R E");
-        DrawText(77, 1, ConsoleColor.DarkYellow, $"{score:D3}");
+        DrawCanvaText(1, -1, ConsoleColor.DarkGreen, "S N A K E");
+        DrawCanvaText(config.MapWidth - 10, -1, ConsoleColor.White, $"S C O R E");
+        DrawCanvaText(config.MapWidth -4, -1, ConsoleColor.DarkYellow, $"{score:D3}");
     }
 
     private void DrawFooter()
     {
-        DrawText(3, 24, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
-        DrawText(74, 24, ConsoleColor.DarkGray, "ESC QUIT");
+        DrawCanvaText(1, 20, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
+        DrawCanvaText(config.MapWidth - 5, 20, ConsoleColor.DarkGray, "ESC QUIT");
     }
 
 
@@ -64,29 +109,71 @@ public class Renderer
     {
         foreach (Point food in foodList)
         {
-            DrawGridCell(food.X, food.Y, ConsoleColor.Yellow);
+            DrawCanvaCell(food.X, food.Y, ConsoleColor.Yellow);
         }
     }
 
 
     private void DrawSnake(Snake snake)
     {
-        DrawGridCell(snake.Head.X, snake.Head.Y, ConsoleColor.Blue);
+        DrawCanvaCell(snake.Head.X, snake.Head.Y, ConsoleColor.Blue);
         foreach (Point segment in snake.Body.Skip(1))
         {
-            DrawGridCell(segment.X, segment.Y, ConsoleColor.Cyan);
+            DrawCanvaCell(segment.X, segment.Y, ConsoleColor.Cyan);
         }
     }
 
     private void DrawPause()
     {
-        DrawCenteredText(13, ConsoleColor.Blue, "P A U S E");
+        DrawCenteredText(config.MapHeight / 2, ConsoleColor.Blue, "P A U S E");
     }
 
+    private void DrawGameOver(Game game)
+    {
+        int centerY = config.MapHeight / 2;
+        DrawCenteredText(centerY - 3, ConsoleColor.Red, "G A M E  O V E R");
+        DrawCenteredText(centerY, ConsoleColor.White, $"SCORE: {game.Score}");
+        DrawCenteredText(centerY + 3, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
+        DrawCenteredText(centerY + 4, ConsoleColor.DarkGray, " or 'ESC' TO EXIT");
+    }
+
+    private void Present(FrameBuffer previousFrame, FrameBuffer currentFrame)
+    {
+        StringBuilder output = new();
+
+        bool fullRedraw = isFirstFrame;
+
+        if (fullRedraw)
+        {
+            output.Append("\x1b[2J");
+        }
+
+        for (int y = 0; y < currentFrame.Height; y++)
+        {
+            for (int x = 0; x < currentFrame.Width; x++)
+            {
+                Cell newCell = currentFrame.GetCell(x, y);
+                Cell oldCell = previousFrame.GetCell(x, y);
+
+                if (!fullRedraw && newCell == oldCell)
+                    continue;
+
+                output.Append($"\x1b[{y + 1};{x + 1}H");
+                output.Append(ToAnsi(newCell.Color));
+                output.Append(newCell.Character);
+            }
+        }
+
+        output.Append("\x1b[0m");
+
+        Console.Write(output.ToString());
+
+        isFirstFrame = false;
+    }
     //提供的api
     public void RenderFrame(Game game, Snake snake)
     {
-        Console.Clear();
+        currentFrame.Clear();
 
         DrawMap();
         DrawHeader(game.Score);
@@ -95,19 +182,13 @@ public class Renderer
         DrawSnake(snake);
 
         if (game.State == Game.GameState.Paused)
-        {
             DrawPause();
-        }
-    }
+        if (game.State == Game.GameState.GameOver)
+            DrawGameOver(game);
 
-    public void DrawGameOver(Game game)
-    {
-        DrawCenteredText(9, ConsoleColor.Red, "G A M E  O V E R");
-        DrawCenteredText(12, ConsoleColor.White, $"SCORE: {game.Score}");
-        DrawCenteredText(15, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
-        DrawCenteredText(16, ConsoleColor.DarkGray, " or 'ESC' TO EXIT");
+        Present(previousFrame, currentFrame);
+        (previousFrame, currentFrame) = (currentFrame, previousFrame);
     }
-
 
 
 }

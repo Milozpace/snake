@@ -75,7 +75,6 @@ public class Game
     }
 
     //处理游戏-接口
-    //////////////////////////////////////！！！////////////////////（5ms步长调用点）
     public bool UpdateGameIfdue()
     {
         if (State != GameState.Playing)

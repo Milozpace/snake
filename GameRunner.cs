@@ -94,7 +94,6 @@ class GameRunner
 
             if (_isRunning)
             {
-                renderer.DrawGameOver(game);
                 if (HandleGameOverInput() == true)
                 {
                     game = new(config);
