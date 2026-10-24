@@ -11,14 +11,13 @@ public class Snake
 
     //Move
 
-    private readonly int BoostMoveIntervalMs;
     private int _baseMoveIntervalMs;
 
     private int _moveCooldownMs;
 
     private int CurrentMoveIntervalMs =>
        CurrentSkillState == SkillState.Active
-           ? BoostMoveIntervalMs
+           ? Math.Max(1, _baseMoveIntervalMs / 2)
            : _baseMoveIntervalMs;
     //Grow
     private readonly int MinMoveIntervalMs;
@@ -67,7 +66,6 @@ public class Snake
         _baseMoveIntervalMs = config.InitMoveIntervalMs;
         MinMoveIntervalMs = config.MinMoveIntervalMs;
         MoveIntervalDecreaseMs = config.MoveIntervalDecreaseMs;
-        BoostMoveIntervalMs = config.BoostMoveIntervalMs;
         SkillCooldownMs = config.SkillCooldownMs;
         SkillActiveMs = config.SkillActiveMs;
 

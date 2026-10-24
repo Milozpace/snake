@@ -3,7 +3,6 @@
     "MapHeight": 20,
     "SimStepMs": 5,
     "InitMoveIntervalMs": 200,
-    "BoostMoveIntervalMs": 120,
     "SkillCooldownMs": 10000,
     "SkillActiveMs": 5000,
     "MinMoveIntervalMs": 120,

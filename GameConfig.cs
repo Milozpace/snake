@@ -7,7 +7,6 @@ public class GameConfig
     //Time
     public int SimStepMs { get; init; }
     public int InitMoveIntervalMs { get; init; }
-    public int BoostMoveIntervalMs { get; init; }
     public int SkillCooldownMs { get; init; }
     public int SkillActiveMs { get; init; }
 
