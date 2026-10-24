@@ -3,6 +3,10 @@ using System.Text;
 
 public class Renderer
 {
+    private readonly GameConfig config;
+    private const int MapOriginX = 2;
+    private const int MapOriginY = 3;
+
     private static readonly string[] AnsiForeground =
     [
         "\x1b[30m", // Black
@@ -22,16 +26,12 @@ public class Renderer
         "\x1b[93m", // Yellow
         "\x1b[97m", // White
     ];
-
     private static string ToAnsi(ConsoleColor color) =>
         AnsiForeground[(int)color];
-    private readonly GameConfig config;
+
     private FrameBuffer currentFrame;
     private FrameBuffer previousFrame;
     private bool isFirstFrame;
-
-    private const int MapOriginX = 2;
-    private const int MapOriginY = 3;
 
     public Renderer(GameConfig config)
     {
@@ -95,7 +95,7 @@ public class Renderer
     {
         DrawCanvaText(1, -1, ConsoleColor.DarkGreen, "S N A K E");
         DrawCanvaText(config.MapWidth - 10, -1, ConsoleColor.White, $"S C O R E");
-        DrawCanvaText(config.MapWidth -4, -1, ConsoleColor.DarkYellow, $"{score:D3}");
+        DrawCanvaText(config.MapWidth - 4, -1, ConsoleColor.DarkYellow, $"{score:D3}");
     }
 
     private void DrawFooter()
@@ -136,6 +136,14 @@ public class Renderer
         DrawCenteredText(centerY + 3, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
         DrawCenteredText(centerY + 4, ConsoleColor.DarkGray, " or 'ESC' TO EXIT");
     }
+    private void DrawCanvas(Game game, Snake snake)
+    {
+        DrawMap();
+        DrawHeader(game.Score);
+        DrawFooter();
+        DrawFood(game.FoodList);
+        DrawSnake(snake);
+    }
 
     private void Present(FrameBuffer previousFrame, FrameBuffer currentFrame)
     {
@@ -170,16 +178,12 @@ public class Renderer
 
         isFirstFrame = false;
     }
-    //提供的api
+
+    //API
     public void RenderFrame(Game game, Snake snake)
     {
         currentFrame.Clear();
-
-        DrawMap();
-        DrawHeader(game.Score);
-        DrawFooter();
-        DrawFood(game.FoodList);
-        DrawSnake(snake);
+        DrawCanvas(game, snake);
 
         if (game.State == Game.GameState.Paused)
             DrawPause();
@@ -189,6 +193,5 @@ public class Renderer
         Present(previousFrame, currentFrame);
         (previousFrame, currentFrame) = (currentFrame, previousFrame);
     }
-
 
 }

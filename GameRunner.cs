@@ -1,13 +1,15 @@
+using System.Diagnostics;
 using System.Net;
 
 class GameRunner
 {
     private readonly GameConfig config;
-
     private Game game;
     private readonly Renderer renderer;
 
     private bool _isRunning;
+
+    Stopwatch _renderClock = Stopwatch.StartNew();
 
     //Constructor
     public GameRunner(GameConfig config)
@@ -87,7 +89,13 @@ class GameRunner
             {
                 HandlePlayingInput();
                 game.UpdateGameIfdue();
-                renderer.RenderFrame(game, game.snake1);
+
+                if (_renderClock.ElapsedMilliseconds >= 40)
+                {
+                    renderer.RenderFrame(game, game.snake1);
+                    _renderClock.Restart();
+                }
+
 
                 Thread.Sleep(1);
             }
