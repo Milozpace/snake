@@ -102,6 +102,7 @@ public class Renderer
             filled = 1;
         filled = Math.Clamp(filled, 0, barWidth);
 
+        //调整位置
         int blockWidth = 7 + barWidth + 2 + labelWidth;
         int x = Math.Max(0, mapWidthChars - blockWidth);
         int row = config.MapHeight + 1;

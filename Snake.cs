@@ -1,3 +1,4 @@
+using System.ComponentModel.Design.Serialization;
 using System.Data;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -19,9 +20,8 @@ public class Snake
        CurrentSkillState == SkillState.Active
            ? Math.Max(1, _baseMoveIntervalMs / 2)
            : _baseMoveIntervalMs;
-    //Grow
-    private readonly int MinMoveIntervalMs;
-    private readonly int MoveIntervalDecreaseMs;
+
+    //Direction
     public enum Direction
     {
         Up,
@@ -29,6 +29,14 @@ public class Snake
         Left,
         Right
     }
+    private Direction _currentDirection;
+    public Direction CurrentDirection => _currentDirection;
+    private const int MaxBufferedTurns = 2;
+    private readonly Queue<Direction> _pendingDIrection = new();
+
+    //Grow
+    private readonly int MinMoveIntervalMs;
+    private readonly int MoveIntervalDecreaseMs;
 
     //Skill
     public enum SkillState
@@ -43,10 +51,6 @@ public class Snake
     public readonly int SkillActiveMs;
     public int _skillCooldownTimerMs { get; private set; }
     public int _skillActiveTimerMs { get; private set; } = 0;
-
-
-    private Direction _currentDirection;
-    public Direction CurrentDirection => _currentDirection;
 
 
     //共有数据
@@ -114,6 +118,13 @@ public class Snake
         }
     }
 
+    private void UpdateDirection()
+    {
+        if (_pendingDIrection.Count() == 0)
+            return;
+        _currentDirection = _pendingDIrection.Dequeue();
+    }
+
     //主要调用的操作方法
     public void UpdateSnake()
     {
@@ -127,6 +138,7 @@ public class Snake
             return;
         }
 
+        UpdateDirection();
         previousTailPosition = _body[^1];
         Point newHead = CalculateNextHead();
         _body.Insert(0, newHead);
@@ -137,18 +149,26 @@ public class Snake
 
     public void TryTurn(Direction newDirection)
     {
-        bool isOpposite = (_currentDirection, newDirection) switch
+        Direction lastDirection = _pendingDIrection.Count > 0
+            ? _pendingDIrection.Last()
+            : _currentDirection;
+
+        bool isBannedDirection = (lastDirection, newDirection) switch
         {
             (Direction.Up, Direction.Down) => true,
             (Direction.Down, Direction.Up) => true,
             (Direction.Left, Direction.Right) => true,
             (Direction.Right, Direction.Left) => true,
+            (Direction.Up, Direction.Up) => true,
+            (Direction.Down, Direction.Down) => true,
+            (Direction.Left, Direction.Left) => true,
+            (Direction.Right, Direction.Right) => true,
             _ => false
         };
 
-        if (!isOpposite)
+        if (!isBannedDirection && _pendingDIrection.Count < MaxBufferedTurns)
         {
-            _currentDirection = newDirection;
+            _pendingDIrection.Enqueue(newDirection);
         }
     }
 
