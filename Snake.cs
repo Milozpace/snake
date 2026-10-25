@@ -39,10 +39,10 @@ public class Snake
     }
 
     public SkillState CurrentSkillState { get; private set; } = SkillState.Ready;
-    private readonly int SkillCooldownMs;
-    private readonly int SkillActiveMs;
-    private int _skillCooldownTimerMs;
-    private int _skillActiveTimerMs = 0;
+    public readonly int SkillCooldownMs;
+    public readonly int SkillActiveMs;
+    public int _skillCooldownTimerMs { get; private set; }
+    public int _skillActiveTimerMs { get; private set; } = 0;
 
 
     private Direction _currentDirection;

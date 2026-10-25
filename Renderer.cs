@@ -69,6 +69,68 @@ public class Renderer
         }
     }
 
+    private void DrawScreenText(int screenX, int screenY, ConsoleColor color, string content)
+    {
+        for (int i = 0; i < content.Length; i++)
+        {
+            currentFrame.SetCell(screenX + i, screenY, new(content[i], color));
+        }
+    }
+
+    private void DrawMapRowText(int mapCharX, int mapRow, ConsoleColor color, string content)
+    {
+        DrawScreenText(MapOriginX + mapCharX, MapOriginY + mapRow, color, content);
+    }
+
+    private void DrawSkillMeter(
+        double progress,
+        string label,
+        ConsoleColor fillColor,
+        ConsoleColor textColor)
+    {
+        const int labelWidth = 9;
+
+        int mapWidthChars = config.MapWidth * 2;
+        int reservedWidth = 7 + 2 + labelWidth;
+        int maxBarWidth = Math.Max(1, mapWidthChars - reservedWidth);
+        int barWidth = Math.Clamp(config.MapWidth / 2, 1, Math.Min(16, maxBarWidth));
+
+        progress = Math.Clamp(progress, 0.0, 1.0);
+
+        int filled = (int)Math.Floor(progress * barWidth);
+        if (progress > 0 && filled == 0)
+            filled = 1;
+        filled = Math.Clamp(filled, 0, barWidth);
+
+        int blockWidth = 7 + barWidth + 2 + labelWidth;
+        int x = Math.Max(0, mapWidthChars - blockWidth);
+        int row = config.MapHeight + 1;
+
+        DrawMapRowText(x, row, ConsoleColor.DarkGray, "BOOST [");
+        x += 7;
+
+        DrawMapRowText(x, row, fillColor, new string('█', filled));
+        x += filled;
+
+        DrawMapRowText(x, row, ConsoleColor.DarkGray, new string('░', barWidth - filled));
+        x += barWidth - filled;
+
+        DrawMapRowText(x, row, ConsoleColor.DarkGray, "] ");
+        x += 2;
+
+        DrawMapRowText(x, row, textColor, label);
+
+        int padding = labelWidth - label.Length;
+        if (padding > 0)
+        {
+            DrawMapRowText(
+                x + label.Length,
+                row,
+                ConsoleColor.DarkGray,
+                new string(' ', padding));
+        }
+    }
+
     private void DrawCenteredText(int y, ConsoleColor color, string content)
     {
         int screenCenterX = (config.MapWidth * 2 - content.Length) / 4; ;
@@ -76,6 +138,31 @@ public class Renderer
         DrawCanvaText(screenCenterX, y, color, content);
     }
 
+    private static string FormatCooldown(double progress)
+    {
+        progress = Math.Clamp(progress, 0.0, 1.0);
+
+        if (progress < 0.20)
+            return "0%";
+
+        if (progress < 0.40)
+            return "20%";
+
+        if (progress < 0.60)
+            return "40%";
+
+        if (progress < 0.80)
+            return "60%";
+
+        double percent = progress * 100.0;
+
+        if (percent > 99.9)
+            percent = 99.9;
+
+        return $"{percent:0.0}%";
+    }
+
+    //调用方法
     private void DrawMap()
     {
         for (int y = 0; y < config.MapHeight; y++)
@@ -89,8 +176,6 @@ public class Renderer
             }
         }
     }
-
-    //调用方法
     private void DrawHeader(int score)
     {
         DrawCanvaText(1, -1, ConsoleColor.DarkGreen, "S N A K E");
@@ -101,9 +186,54 @@ public class Renderer
     private void DrawFooter()
     {
         DrawCanvaText(1, config.MapHeight, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
-        DrawCanvaText(config.MapWidth - 5, config.MapHeight, ConsoleColor.DarkGray, "ESC QUIT");
+        DrawCanvaText(1, config.MapHeight + 2, ConsoleColor.DarkGray, "ESC QUIT");
     }
 
+    private void DrawSkillbar(Snake snake)
+    {
+        if (snake.CurrentSkillState == Snake.SkillState.Ready)
+        {
+            DrawSkillMeter(
+                progress: 1.0,
+                label: "READY [M]",
+                fillColor: ConsoleColor.Green,
+                textColor: ConsoleColor.Green);
+            return;
+        }
+
+        if (snake.CurrentSkillState == Snake.SkillState.Active)
+        {
+            double progress =
+                (double)snake._skillActiveTimerMs / snake.SkillActiveMs;
+
+            double seconds = snake._skillActiveTimerMs / 1000.0;
+
+            DrawSkillMeter(
+                progress: progress,
+                label: $"{seconds:0.0}s",
+                fillColor: ConsoleColor.Yellow,
+                textColor: ConsoleColor.Yellow);
+            return;
+        }
+
+        if (snake.CurrentSkillState == Snake.SkillState.CoolingDown)
+        {
+            double progress =
+                1.0 - (double)snake._skillCooldownTimerMs / snake.SkillCooldownMs;
+
+            string label = FormatCooldown(progress);
+
+            ConsoleColor color = progress >= 0.80
+                ? ConsoleColor.Green
+                : ConsoleColor.Gray;
+
+            DrawSkillMeter(
+                progress: progress,
+                label: label,
+                fillColor: color,
+                textColor: color);
+        }
+    }
 
     private void DrawFood(IReadOnlyList<Point> foodList)
     {
@@ -143,7 +273,9 @@ public class Renderer
         DrawFooter();
         DrawFood(game.FoodList);
         DrawSnake(snake);
+        DrawSkillbar(snake);
     }
+
 
     private void Present(FrameBuffer previousFrame, FrameBuffer currentFrame)
     {
