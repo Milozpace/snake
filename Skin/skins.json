@@ -1,0 +1,10 @@
+{
+  "Player1": {
+    "HeadColor": "Blue",
+    "BodyColor": "Cyan"
+  },
+  "Player2": {
+    "HeadColor": "Green",
+    "BodyColor": "Yellow"
+  }
+}

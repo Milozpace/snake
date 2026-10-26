@@ -3,7 +3,8 @@ using System.Net;
 
 class GameRunner
 {
-    private readonly GameConfig config;
+    private readonly GameConfig Config;
+    private readonly SkinConfig SkinConfig;
     private Game game;
     private readonly Renderer renderer;
 
@@ -12,10 +13,11 @@ class GameRunner
     Stopwatch _renderClock = Stopwatch.StartNew();
 
     //Constructor
-    public GameRunner(GameConfig config)
+    public GameRunner(GameConfig config, SkinConfig skinConfig)
     {
-        this.config = config;
-        game = new(config);
+        Config = config;
+        SkinConfig = skinConfig;
+        game = new(config, skinConfig);
         renderer = new(config);
 
         _isRunning = true;
@@ -51,10 +53,10 @@ class GameRunner
                 _ => null
             };
             if (newdirection is { } direction)
-                game.ToggleDirection(game.snake1, direction);
+                game.ToggleDirection_1(direction);
 
             if (key == ConsoleKey.M)
-                game.ToggleBoost();
+                game.ToggleBoost_1();
         }
     }
 
@@ -92,13 +94,13 @@ class GameRunner
 
                 if (game.State == Game.GameState.GameOver)
                 {
-                    renderer.RenderFrame(game, game.snake1);
+                    renderer.RenderFrame(game);
                     continue;
                 }
 
                 if (_renderClock.ElapsedMilliseconds >= 40)
                 {
-                    renderer.RenderFrame(game, game.snake1);
+                    renderer.RenderFrame(game);
                     _renderClock.Restart();
                 }
 
@@ -110,7 +112,7 @@ class GameRunner
             {
                 if (HandleGameOverInput() == true)
                 {
-                    game = new(config);
+                    game = new(Config,SkinConfig);
                     continue;
                 }
             }

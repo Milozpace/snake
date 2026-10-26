@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 public class Game
 {
+    //游戏状态
     public enum GameState
     {
         Playing,
@@ -11,13 +12,18 @@ public class Game
         GameOver
     }
     public GameState State { get; private set; }
-    public int Score { get; private set; }
-    private readonly int FoodScore;
 
-    public Snake snake1;
+    //游戏成员
+
+    private Snake snake1;
+    private readonly List<Snake> _snakeList = [];
+    private readonly List<Player> _playerList = [];
+    public IReadOnlyList<Player> PlayerList => _playerList;
+    private Player Player1;
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
 
+    //计时
     private readonly Stopwatch _clock = Stopwatch.StartNew();
 
     private long _lastUpdateMs = 0;
@@ -30,20 +36,27 @@ public class Game
 
 
     //config
-    private readonly GameConfig config;
+    private readonly GameConfig Config;
+    private readonly SkinConfig skinConfig;
+    private readonly int FoodScore;
 
 
     //Constructor
-    public Game(GameConfig config)
+    public Game(GameConfig config, SkinConfig skinConfig)
     {
-        this.config = config;
+        Config = config;
+        this.skinConfig = skinConfig;
         SimStepMs = config.SimStepMs;
         FoodSpawnIntervalMs = config.FoodSpawnIntervalMs;
         FoodScore = config.FoodScore;
         _foodSpawnCooldownMs = FoodSpawnIntervalMs;
 
         State = GameState.Playing;
-        snake1 = new(config);
+        snake1 = new(config, new(3, 0), Snake.Direction.Left);
+        Player1 = new(01, snake1, skinConfig.Player1);
+        _playerList.Add(Player1);
+        _snakeList.Add(snake1);
+
     }
 
     //键盘输入接口
@@ -70,13 +83,13 @@ public class Game
         }
     }
 
-    public void ToggleDirection(Snake snake, Snake.Direction direction)
+    public void ToggleDirection_1(Snake.Direction direction)
     {
-        snake.TryTurn(direction);
+        Player1.snake.TryTurn(direction);
     }
-    public void ToggleBoost()
+    public void ToggleBoost_1()
     {
-        snake1.TryBoost();
+        Player1.snake.TryBoost();
     }
 
     //处理游戏-接口
@@ -91,11 +104,14 @@ public class Game
 
         if (_accumulatorMs > SimStepMs)
         {
-            snake1.UpdateSnake();
-            SpawnFoodIfDue();
-            snake1.Move();
+            foreach (Snake snake in _snakeList)
+            {
+                snake.UpdateSnake();
+                snake.Move();
 
+            }
             CheckEatFood();
+            SpawnFoodIfDue();
             CheckCollision();
 
             _accumulatorMs -= SimStepMs;
@@ -103,8 +119,6 @@ public class Game
         }
         else
             return false;
-
-
     }
 
     //游戏处理
@@ -120,8 +134,8 @@ public class Game
         do
         {
             var newFood = new Point(
-            Random.Shared.Next(2, config.MapWidth - 2),
-            Random.Shared.Next(2, config.MapHeight - 2)
+            Random.Shared.Next(2, Config.MapWidth - 2),
+            Random.Shared.Next(2, Config.MapHeight - 2)
             );
 
             isOccupied = snake1.Body.Contains(newFood) || _foodList.Contains(newFood);
@@ -133,10 +147,10 @@ public class Game
         _foodSpawnCooldownMs += FoodSpawnIntervalMs;
     }
 
-    private void CheckCollision()
+    private void CheckCollision()//重点升级对象//
     {
-        bool state_x = (snake1.Head.X <= 0 || snake1.Head.X >= config.MapWidth - 1);
-        bool state_y = (snake1.Head.Y <= 0 || snake1.Head.Y >= config.MapHeight - 1);
+        bool state_x = (snake1.Head.X <= 0 || snake1.Head.X >= Config.MapWidth - 1);
+        bool state_y = (snake1.Head.Y <= 0 || snake1.Head.Y >= Config.MapHeight - 1);
         bool hitSelf = snake1.Body.Skip(1).Contains(snake1.Head);
         if (state_x || state_y || hitSelf)
         {
@@ -146,18 +160,16 @@ public class Game
 
     private void CheckEatFood()
     {
-        bool eatfood = _foodList.Contains(snake1.Head);
-        if (!eatfood)
+        foreach (Player player in _playerList)
         {
-            return;
+            bool isEatFood = _foodList.Contains(player.snake.Head);
+            if (!isEatFood)
+                continue;
+            player.snake.Grow();
+            var foodPosition = player.snake.Head;
+            _foodList.Remove(foodPosition);
+            player.GetPoint(FoodScore);
         }
-
-        snake1.Grow();
-        var foodPosition = snake1.Head;
-        _foodList.Remove(foodPosition);
-        Score += FoodScore;
     }
-
-
 }
 

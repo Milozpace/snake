@@ -52,19 +52,20 @@ public class Snake
     public int _skillCooldownTimerMs { get; private set; }
     public int _skillActiveTimerMs { get; private set; } = 0;
 
-
     //共有数据
     private readonly int SimStepMs;
-    public Snake(GameConfig config)
+    //Constructor
+    public Snake(GameConfig config, Point offsetFromCenter, Direction initDirection)
     {
-        Point head = new(config.MapWidth / 2, config.MapHeight / 2);
-        _body = [
-            head,
-            new(head.X - 1, head.Y),
-            new(head.X - 2, head.Y)
-        ];
+        Point head = new(config.MapWidth / 2 + offsetFromCenter.X, config.MapHeight / 2 + offsetFromCenter.Y);
 
-        _currentDirection = Direction.Right;
+        Point directionVector = GetDeltaPoint(initDirection);
+        Point body_1 = new(head.X - directionVector.X, head.Y - directionVector.Y);
+        Point body_2 = new(body_1.X - directionVector.X, body_1.Y - directionVector.Y);
+
+        _body = [head,body_1, body_2];
+
+        _currentDirection = initDirection;
 
         SimStepMs = config.SimStepMs;
         _baseMoveIntervalMs = config.InitMoveIntervalMs;
@@ -78,9 +79,9 @@ public class Snake
     }
 
     //私有工具方法
-    private Point CalculateNextHead()
+    private Point GetDeltaPoint(Direction direction)
     {
-        Point delta = _currentDirection switch
+        Point directionVector = direction switch
         {
             Direction.Up => new Point(0, -1),
             Direction.Down => new Point(0, 1),
@@ -88,6 +89,11 @@ public class Snake
             Direction.Right => new Point(1, 0),
             _ => throw new ArgumentException()
         };
+        return directionVector;
+    }
+    private Point CalculateNextHead()
+    {
+        Point delta = GetDeltaPoint(CurrentDirection);
 
         Point newHead = new Point(
             Head.X + delta.X,

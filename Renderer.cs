@@ -163,6 +163,7 @@ public class Renderer
         return $"{percent:0.0}%";
     }
 
+
     //调用方法
     private void DrawMap()
     {
@@ -177,11 +178,11 @@ public class Renderer
             }
         }
     }
-    private void DrawHeader(int score)
+    private void DrawHeader(Player player)
     {
         DrawCanvaText(1, -1, ConsoleColor.DarkGreen, "S N A K E");
         DrawCanvaText(config.MapWidth - 10, -1, ConsoleColor.White, $"S C O R E");
-        DrawCanvaText(config.MapWidth - 4, -1, ConsoleColor.DarkYellow, $"{score:D3}");
+        DrawCanvaText(config.MapWidth - 4, -1, ConsoleColor.DarkYellow, $"{player.Score:D3}");
     }
 
     private void DrawFooter()
@@ -244,13 +245,13 @@ public class Renderer
         }
     }
 
-
-    private void DrawSnake(Snake snake)
+    //考虑到skin，处理单元是player
+    private void DrawSnake(Player player)
     {
-        DrawCanvaCell(snake.Head.X, snake.Head.Y, ConsoleColor.Blue);
-        foreach (Point segment in snake.Body.Skip(1))
+        DrawCanvaCell(player.snake.Head.X, player.snake.Head.Y, player.snakeSkin.HeadColor);
+        foreach (Point segment in player.snake.Body.Skip(1))
         {
-            DrawCanvaCell(segment.X, segment.Y, ConsoleColor.Cyan);
+            DrawCanvaCell(segment.X, segment.Y, player.snakeSkin.BodyColor);
         }
     }
 
@@ -259,22 +260,25 @@ public class Renderer
         DrawCenteredText(config.MapHeight / 2, ConsoleColor.Blue, "P A U S E");
     }
 
-    private void DrawGameOver(Game game)
+    private void DrawGameOver(IReadOnlyList<Player> playerList)
     {
         int centerY = config.MapHeight / 2;
         DrawCenteredText(centerY - 3, ConsoleColor.Red, "G A M E  O V E R");
-        DrawCenteredText(centerY, ConsoleColor.White, $"SCORE: {game.Score}");
+        DrawCenteredText(centerY, ConsoleColor.White, $"SCORE: {playerList[0].Score}");
         DrawCenteredText(centerY + 3, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
         DrawCenteredText(centerY + 4, ConsoleColor.DarkGray, " or 'ESC' TO EXIT");
     }
-    private void DrawCanvas(Game game, Snake snake)
+    private void DrawCanvas(Game game)
     {
         DrawMap();
-        DrawHeader(game.Score);
         DrawFooter();
         DrawFood(game.FoodList);
-        DrawSnake(snake);
-        DrawSkillbar(snake);
+        foreach (Player player in game.PlayerList)
+        {
+            DrawHeader(player);
+            DrawSnake(player);
+            DrawSkillbar(player.snake);
+        }
     }
 
 
@@ -313,18 +317,17 @@ public class Renderer
     }
 
     //API
-    public void RenderFrame(Game game, Snake snake)
+    public void RenderFrame(Game game)
     {
         currentFrame.Clear();
-        DrawCanvas(game, snake);
+        DrawCanvas(game);
 
         if (game.State == Game.GameState.Paused)
             DrawPause();
         if (game.State == Game.GameState.GameOver)
-            DrawGameOver(game);
+            DrawGameOver(game.PlayerList);
 
         Present(previousFrame, currentFrame);
         (previousFrame, currentFrame) = (currentFrame, previousFrame);
     }
-
 }
