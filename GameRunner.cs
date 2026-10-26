@@ -44,7 +44,8 @@ class GameRunner
 
         if (game.State != Game.GameState.Paused)
         {
-            Snake.Direction? newdirection = key switch
+            //玩家1 按键映射
+            Snake.Direction? newDirection1 = key switch
             {
                 ConsoleKey.UpArrow => Snake.Direction.Up,
                 ConsoleKey.DownArrow => Snake.Direction.Down,
@@ -52,11 +53,27 @@ class GameRunner
                 ConsoleKey.RightArrow => Snake.Direction.Right,
                 _ => null
             };
-            if (newdirection is { } direction)
-                game.ToggleDirection_1(direction);
+            if (newDirection1 is { } direction1)
+                game.ToggleDirection_1(direction1);
 
             if (key == ConsoleKey.M)
                 game.ToggleBoost_1();
+
+
+            //玩家2 按键映射
+            Snake.Direction? newDirection2 = key switch
+            {
+                ConsoleKey.W => Snake.Direction.Up,
+                ConsoleKey.S => Snake.Direction.Down,
+                ConsoleKey.A => Snake.Direction.Left,
+                ConsoleKey.D => Snake.Direction.Right,
+                _ => null
+            };
+
+            if (newDirection2 is { } direction2)
+                game.ToggleDirection_2(direction2);
+            if (key == ConsoleKey.Q)
+                game.ToggleBoost_2();
         }
     }
 
@@ -112,7 +129,7 @@ class GameRunner
             {
                 if (HandleGameOverInput() == true)
                 {
-                    game = new(Config,SkinConfig);
+                    game = new(Config, SkinConfig);
                     continue;
                 }
             }

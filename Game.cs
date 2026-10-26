@@ -16,10 +16,12 @@ public class Game
     //游戏成员
 
     private Snake snake1;
+    private Snake snake2;
     private readonly List<Snake> _snakeList = [];
     private readonly List<Player> _playerList = [];
     public IReadOnlyList<Player> PlayerList => _playerList;
     private Player Player1;
+    private Player Player2;
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
 
@@ -52,11 +54,15 @@ public class Game
         _foodSpawnCooldownMs = FoodSpawnIntervalMs;
 
         State = GameState.Playing;
-        snake1 = new(config, new(3, 0), Snake.Direction.Left);
+        snake1 = new(config, new(-3, -1), Snake.Direction.Right);
+        snake2 = new(config, new(3, 1), Snake.Direction.Left);
         Player1 = new(01, snake1, skinConfig.Player1);
-        _playerList.Add(Player1);
-        _snakeList.Add(snake1);
+        Player2 = new(02, snake2, skinConfig.Player2);
 
+        _playerList.Add(Player1);
+        _playerList.Add(Player2);
+        _snakeList.Add(snake1);
+        _snakeList.Add(snake2);
     }
 
     //键盘输入接口
@@ -91,6 +97,14 @@ public class Game
     {
         Player1.snake.TryBoost();
     }
+    public void ToggleDirection_2(Snake.Direction direction)
+    {
+        Player2.snake.TryTurn(direction);
+    }
+      public void ToggleBoost_2()
+    {
+        Player2.snake.TryBoost();
+    }
 
     //处理游戏-接口
     public bool UpdateGameIfdue()
@@ -112,7 +126,7 @@ public class Game
             }
             CheckEatFood();
             SpawnFoodIfDue();
-            CheckCollision();
+            CheckCollision();//这个需要调整
 
             _accumulatorMs -= SimStepMs;
             return true;
@@ -139,7 +153,7 @@ public class Game
             );
 
             isOccupied = _snakeList.Any(
-                snake => snake.Body.Contains(newFood)) || 
+                snake => snake.Body.Contains(newFood)) ||
                 _foodList.Contains(newFood);
             if (!isOccupied)
             {
