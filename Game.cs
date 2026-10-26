@@ -138,7 +138,9 @@ public class Game
             Random.Shared.Next(2, Config.MapHeight - 2)
             );
 
-            isOccupied = snake1.Body.Contains(newFood) || _foodList.Contains(newFood);
+            isOccupied = _snakeList.Any(
+                snake => snake.Body.Contains(newFood)) || 
+                _foodList.Contains(newFood);
             if (!isOccupied)
             {
                 _foodList.Add(newFood);
