@@ -333,13 +333,134 @@ public class Renderer
 
 
 
-    private void DrawGameOver(IReadOnlyList<Player> playerList)
+    private void DrawGameOver(Game game)
     {
-        int centerY = config.MapHeight / 2;
-        DrawCenteredText(centerY - 3, ConsoleColor.Red, "G A M E  O V E R");
-        DrawCenteredText(centerY, ConsoleColor.White, $"SCORE: {playerList[0].Score}");
-        DrawCenteredText(centerY + 3, ConsoleColor.DarkGray, "'ENTER' TO RESTART");
-        DrawCenteredText(centerY + 4, ConsoleColor.DarkGray, " or 'ESC' TO EXIT");
+        bool isVersus = game.gameMode == GameRunner.GameMode.LocalVersus;
+        Player? winner = isVersus ? game.Winner : null;
+
+        string title = !isVersus
+            ? "GAME OVER"
+            : winner is null
+                ? "DRAW"
+                : $"PLAYER {winner.Id} WINS";
+
+        ConsoleColor accent = !isVersus
+            ? ConsoleColor.Red
+            : winner is null
+                ? ConsoleColor.Yellow
+                : winner.Id == 1
+                    ? ConsoleColor.Green
+                    : ConsoleColor.Cyan;
+
+        int mapWidthChars = config.MapWidth * 2;
+        int panelWidth = Math.Clamp(mapWidthChars - 8, 30, 52);
+        int panelHeight = isVersus ? 8 : 7;
+        int panelX = MapOriginX + (mapWidthChars - panelWidth) / 2;
+        int panelY = MapOriginY + (config.MapHeight - panelHeight) / 2;
+
+        // Clear the whole panel first so the board behind it does not show through.
+        for (int row = 0; row < panelHeight; row++)
+        {
+            DrawScreenText(
+                panelX,
+                panelY + row,
+                ConsoleColor.Gray,
+                new string(' ', panelWidth));
+        }
+
+        // Double-line border.
+        DrawScreenText(
+            panelX,
+            panelY,
+            accent,
+            "╔" + new string('═', panelWidth - 2) + "╗");
+
+        for (int row = 1; row < panelHeight - 1; row++)
+        {
+            DrawScreenText(panelX, panelY + row, accent, "║");
+            DrawScreenText(panelX + panelWidth - 1, panelY + row, accent, "║");
+        }
+
+        DrawScreenText(
+            panelX,
+            panelY + panelHeight - 1,
+            accent,
+            "╚" + new string('═', panelWidth - 2) + "╝");
+
+        void DrawCenteredInPanel(int row, string text, ConsoleColor color)
+        {
+            int x = panelX + (panelWidth - text.Length) / 2;
+            DrawScreenText(x, row, color, text);
+        }
+
+        void DrawCenteredRuns(
+            int row,
+            params (ConsoleColor Color, string Text)[] runs)
+        {
+            int totalWidth = 0;
+            foreach (var run in runs)
+                totalWidth += run.Text.Length;
+
+            int x = panelX + (panelWidth - totalWidth) / 2;
+            foreach (var run in runs)
+            {
+                DrawScreenText(x, row, run.Color, run.Text);
+                x += run.Text.Length;
+            }
+        }
+
+        DrawCenteredInPanel(panelY + 1, title, accent);
+        DrawScreenText(
+            panelX + 2,
+            panelY + 2,
+            ConsoleColor.DarkGray,
+            new string('─', panelWidth - 4));
+
+        if (isVersus)
+        {
+            for (int i = 0; i < game.PlayerList.Count; i++)
+            {
+                Player player = game.PlayerList[i];
+                ConsoleColor playerColor = player.Id == 1
+                    ? ConsoleColor.Green
+                    : ConsoleColor.Cyan;
+
+                DrawCenteredRuns(
+                    panelY + 3 + i,
+                    (playerColor, $"P{player.Id}  "),
+                    (ConsoleColor.DarkGray, "SCORE "),
+                    (ConsoleColor.White, $"{player.Score:D3}"),
+                    (ConsoleColor.DarkGray, "   LEN "),
+                    (ConsoleColor.White, $"{player.snake.Body.Count:D2}"));
+            }
+
+            DrawCenteredRuns(
+                panelY + 6,
+                (ConsoleColor.Green, "ENTER"),
+                (ConsoleColor.DarkGray, "  PLAY AGAIN"),
+                (ConsoleColor.DarkGray, "   "),
+                (ConsoleColor.Green, "ESC"),
+                (ConsoleColor.DarkGray, "  QUIT"));
+        }
+        else
+        {
+            Player player = game.PlayerList[0];
+
+            DrawCenteredRuns(
+                panelY + 3,
+                (ConsoleColor.DarkGray, "SCORE "),
+                (ConsoleColor.White, $"{player.Score:D3}"),
+                (ConsoleColor.DarkGray, "   LEN "),
+                (ConsoleColor.White, $"{player.snake.Body.Count:D2}"));
+
+            DrawCenteredRuns(
+                panelY + 5,
+                (ConsoleColor.Green, "ENTER"),
+                (ConsoleColor.DarkGray, "  PLAY AGAIN"),
+                (ConsoleColor.DarkGray, "   "),
+                (ConsoleColor.Green, "ESC"),
+                (ConsoleColor.DarkGray, "  QUIT"));
+        }
     }
     private void DrawCanvas(Game game)
     {
@@ -390,12 +511,35 @@ public class Renderer
     //API
     public void RenderMenu()
     {
-        currentFrame.Clear();//其实重启之后，画面也是衔接的，因为renderer还是原来那个，只是game重启了
-        int centerY = config.MapHeight / 2;
+        currentFrame.Clear();
         DrawMap();
-        DrawCenteredText(centerY - 2, ConsoleColor.DarkGreen, "Choose   Your   GameMode");
-        DrawCenteredText(centerY, ConsoleColor.White, "press  [1]: SinglePlayer");
-        DrawCenteredText(centerY + 1, ConsoleColor.White, "press  [2]: LocalVersus");
+
+        int mapWidthChars = config.MapWidth * 2;
+        int panelWidth = Math.Clamp(mapWidthChars - 16, 32, 50);
+        int panelHeight = 10;
+        int x = MapOriginX + (mapWidthChars - panelWidth) / 2;
+        int y = MapOriginY + (config.MapHeight - panelHeight) / 2;
+
+        void DrawMenuText(int row, string text, ConsoleColor color)
+        {
+            int textX = x + (panelWidth - text.Length) / 2;
+            DrawScreenText(textX, row, color, text);
+        }
+
+        DrawScreenText(x, y, ConsoleColor.DarkGreen, "╔" + new string('═', panelWidth - 2) + "╗");
+        DrawScreenText(x, y + panelHeight - 1, ConsoleColor.DarkGreen, "╚" + new string('═', panelWidth - 2) + "╝");
+
+        for (int row = 1; row < panelHeight - 1; row++)
+        {
+            DrawScreenText(x, y + row, ConsoleColor.DarkGreen, "║");
+            DrawScreenText(x + panelWidth - 1, y + row, ConsoleColor.DarkGreen, "║");
+        }
+
+        DrawMenuText(y + 1, "◆  S N A K E  ◆", ConsoleColor.Green);
+        DrawScreenText(x + 2, y + 2, ConsoleColor.DarkGray, new string('─', panelWidth - 4));
+        DrawMenuText(y + 4, "[1]  SINGLE PLAYER", ConsoleColor.Green);
+        DrawMenuText(y + 6, "[2]  LOCAL VERSUS", ConsoleColor.Cyan);
+        DrawMenuText(y + 8, "1 / 2  START      ESC  QUIT", ConsoleColor.DarkGray);
 
         Present(previousFrame, currentFrame);
         (previousFrame, currentFrame) = (currentFrame, previousFrame);
@@ -408,7 +552,7 @@ public class Renderer
         if (game.State == Game.GameState.Paused)
             DrawPause();
         if (game.State == Game.GameState.GameOver)
-            DrawGameOver(game.PlayerList);
+            DrawGameOver(game);
 
         Present(previousFrame, currentFrame);
         (previousFrame, currentFrame) = (currentFrame, previousFrame);
