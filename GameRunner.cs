@@ -50,7 +50,14 @@ public class GameRunner
 
         if (game.State != Game.GameState.Paused)
         {
-            //玩家1 按键映射
+            //判断第二套按键的绑定对象
+            int secondBindingPlayerId;
+            if (game.gameMode == GameMode.SinglePlayer)
+                secondBindingPlayerId = 1;
+            else
+                secondBindingPlayerId = 2;
+
+            //按键一
             Snake.Direction? newDirection1 = key switch
             {
                 ConsoleKey.UpArrow => Snake.Direction.Up,
@@ -60,13 +67,13 @@ public class GameRunner
                 _ => null
             };
             if (newDirection1 is { } direction1)
-                game.ToggleDirection_1(direction1);
+                game.ToggleDirection(01, direction1);
 
             if (key == ConsoleKey.M)
-                game.ToggleBoost_1();
+                game.ToggleBoost(01);
 
 
-            //玩家2 按键映射
+            //按键二
             Snake.Direction? newDirection2 = key switch
             {
                 ConsoleKey.W => Snake.Direction.Up,
@@ -77,9 +84,10 @@ public class GameRunner
             };
 
             if (newDirection2 is { } direction2)
-                game.ToggleDirection_2(direction2);
+                game.ToggleDirection(secondBindingPlayerId, direction2);
+                
             if (key == ConsoleKey.Q)
-                game.ToggleBoost_2();
+                game.ToggleBoost(secondBindingPlayerId);
         }
     }
 
@@ -127,7 +135,7 @@ public class GameRunner
                     renderer.RenderFrame(game);
                     continue;
                 }
-                
+
                 if (_renderClock.ElapsedMilliseconds >= 40)
                 {
                     renderer.RenderFrame(game);

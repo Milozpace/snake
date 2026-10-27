@@ -19,14 +19,9 @@ public class Game
             : null;
 
     //游戏成员
-
-    private Snake snake1;
-    private Snake snake2;
-    private readonly List<Snake> _snakeList = [];//没有必要保留两个访问入口，只保留playerlist
     private readonly List<Player> _playerList = [];
     public IReadOnlyList<Player> PlayerList => _playerList;
-    private Player Player1;
-    private Player Player2;
+
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
 
@@ -60,15 +55,18 @@ public class Game
         _foodSpawnCooldownMs = FoodSpawnIntervalMs;
 
         State = GameState.Playing;
-        snake1 = new(config, new(-3, -1), Snake.Direction.Right);
-        snake2 = new(config, new(3, 1), Snake.Direction.Left);
-        Player1 = new(01, snake1, skinConfig.Player1);
-        Player2 = new(02, snake2, skinConfig.Player2);
 
+        var snake1 = new Snake(config, new(-3, -1), Snake.Direction.Right);
+        var Player1 = new Player(01, snake1, skinConfig.Player1);
         _playerList.Add(Player1);
-        _playerList.Add(Player2);
-        _snakeList.Add(snake1);
-        _snakeList.Add(snake2);
+
+        //将玩家2的初始化放到条件后面
+        if (gameMode is GameRunner.GameMode.LocalVersus)
+        {
+            var snake2 = new Snake(config, new(3, 1), Snake.Direction.Left);
+            var Player2 = new Player(02, snake2, skinConfig.Player2);
+            _playerList.Add(Player2);
+        }
     }
 
     //键盘输入接口
@@ -95,21 +93,15 @@ public class Game
         }
     }
 
-    public void ToggleDirection_1(Snake.Direction direction)
+    public void ToggleDirection(int playerId, Snake.Direction direction)
     {
-        Player1.snake.TryTurn(direction);
+        Player? player = _playerList.FirstOrDefault(p => p.Id == playerId);
+        player?.snake.TryTurn(direction);
     }
-    public void ToggleBoost_1()
+    public void ToggleBoost(int playerId)
     {
-        Player1.snake.TryBoost();
-    }
-    public void ToggleDirection_2(Snake.Direction direction)
-    {
-        Player2.snake.TryTurn(direction);
-    }
-    public void ToggleBoost_2()
-    {
-        Player2.snake.TryBoost();
+        Player? player = _playerList.FirstOrDefault(p => p.Id == playerId);
+        player?.snake.TryBoost();
     }
 
     //处理游戏-接口
@@ -164,8 +156,8 @@ public class Game
             Random.Shared.Next(2, Config.MapHeight - 2)
             );
 
-            isOccupied = _snakeList.Any(
-                snake => snake.Body.Contains(newFood)) ||
+            isOccupied = _playerList.Any(
+                player => player.snake.Body.Contains(newFood)) ||
                 _foodList.Contains(newFood);
             if (!isOccupied)
             {
@@ -186,9 +178,9 @@ public class Game
                 snake.Head.Y >= Config.MapHeight - 1);
 
             bool hitSelf = snake.Body.Skip(1).Contains(snake.Head);
-            bool hitOther = _snakeList.Any(other =>
-                other != snake &&
-                other.Body.Contains(snake.Head)
+            bool hitOther = _playerList.Any(otherPlayer =>
+                otherPlayer.snake != snake &&
+                otherPlayer.snake.Body.Contains(snake.Head)
             );
             if (hitWall || hitSelf || hitOther)
             {
