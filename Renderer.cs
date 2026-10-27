@@ -4,8 +4,8 @@ using System.Text;
 public class Renderer
 {
     private readonly GameConfig config;
-    private const int MapOriginX = 2;
-    private const int MapOriginY = 3;
+    private const int MapOriginX = 12;
+    private const int MapOriginY = 7;
 
     private static readonly string[] AnsiForeground =
     [
@@ -69,6 +69,22 @@ public class Renderer
         }
     }
 
+    //明天再看
+    private void DrawCanvaRichText(
+    int x,
+    int y,
+    params (ConsoleColor Color, string Text)[] segments)
+    {
+        int screenX = MapOriginX + x * 2;
+        int screenY = MapOriginY + y;
+
+        foreach (var (color, text) in segments)
+        {
+            DrawScreenText(screenX, screenY, color, text);
+            screenX += text.Length;
+        }
+    }
+
     private void DrawScreenText(int screenX, int screenY, ConsoleColor color, string content)
     {
         for (int i = 0; i < content.Length; i++)
@@ -85,15 +101,18 @@ public class Renderer
     private void DrawSkillMeter(
         double progress,
         string label,
+        ConsoleColor playerColor,
         ConsoleColor fillColor,
-        ConsoleColor textColor)
+        ConsoleColor textColor,
+        int mapRow)
     {
         const int labelWidth = 9;
 
         int mapWidthChars = config.MapWidth * 2;
         int reservedWidth = 7 + 2 + labelWidth;
         int maxBarWidth = Math.Max(1, mapWidthChars - reservedWidth);
-        int barWidth = Math.Clamp(config.MapWidth / 2, 1, Math.Min(16, maxBarWidth));
+        int barWidth = Math.Clamp(config.MapWidth / 4, 6, 12);
+        barWidth = Math.Min(barWidth, maxBarWidth);
 
         progress = Math.Clamp(progress, 0.0, 1.0);
 
@@ -102,31 +121,29 @@ public class Renderer
             filled = 1;
         filled = Math.Clamp(filled, 0, barWidth);
 
-        //调整位置
         int blockWidth = 7 + barWidth + 2 + labelWidth;
         int x = Math.Max(0, mapWidthChars - blockWidth);
-        int row = config.MapHeight + 1;
 
-        DrawMapRowText(x, row, ConsoleColor.DarkGray, "BOOST [");
+        DrawMapRowText(x, mapRow, playerColor, "BOOST [");
         x += 7;
 
-        DrawMapRowText(x, row, fillColor, new string('█', filled));
+        DrawMapRowText(x, mapRow, fillColor, new string('█', filled));
         x += filled;
 
-        DrawMapRowText(x, row, ConsoleColor.DarkGray, new string('░', barWidth - filled));
+        DrawMapRowText(x, mapRow, ConsoleColor.DarkGray, new string('░', barWidth - filled));
         x += barWidth - filled;
 
-        DrawMapRowText(x, row, ConsoleColor.DarkGray, "] ");
+        DrawMapRowText(x, mapRow, ConsoleColor.DarkGray, "] ");
         x += 2;
 
-        DrawMapRowText(x, row, textColor, label);
+        DrawMapRowText(x, mapRow, textColor, label);
 
         int padding = labelWidth - label.Length;
         if (padding > 0)
         {
             DrawMapRowText(
                 x + label.Length,
-                row,
+                mapRow,
                 ConsoleColor.DarkGray,
                 new string(' ', padding));
         }
@@ -138,6 +155,7 @@ public class Renderer
 
         DrawCanvaText(screenCenterX, y, color, content);
     }
+
 
     private static string FormatCooldown(double progress)
     {
@@ -178,28 +196,78 @@ public class Renderer
             }
         }
     }
-    private void DrawHeader(Player player)
+
+    private void DrawPlayerInfo(Game game)
     {
-        DrawCanvaText(1, -1, ConsoleColor.DarkGreen, "S N A K E");
-        DrawCanvaText(config.MapWidth - 10, -1, ConsoleColor.White, $"S C O R E");
-        DrawCanvaText(config.MapWidth - 4, -1, ConsoleColor.DarkYellow, $"{player.Score:D3}");
+        int play1RowHeight = game.PlayerList.Count == 1
+            ? -1
+            : -2;
+        for (int i = 0; i < game.PlayerList.Count; i++)
+        {
+            Player player = game.PlayerList[i];
+
+            ConsoleColor playerColor = player.Id == 1
+                ? ConsoleColor.Green
+                : ConsoleColor.Cyan;
+
+            DrawCanvaRichText(
+                1, play1RowHeight + i,
+                (playerColor, $"P{player.Id}  "),
+                (ConsoleColor.DarkGray, "SCORE "),
+                (ConsoleColor.White, $"{player.Score:D3}")
+            );
+        }
     }
 
-    private void DrawFooter()
+    private static int GetPlayerInfoStartRow(Game game) =>
+        game.PlayerList.Count == 1 ? -1 : -2;
+
+    private void DrawPlayerSkillbars(Game game)
     {
-        DrawCanvaText(1, config.MapHeight, ConsoleColor.DarkCyan, "↑ ↓ ← →  MOVE");
-        DrawCanvaText(1, config.MapHeight + 2, ConsoleColor.DarkGray, "ESC QUIT");
+        int startRow = GetPlayerInfoStartRow(game);
+
+        for (int i = 0; i < game.PlayerList.Count; i++)
+        {
+            DrawSkillbar(game.PlayerList[i], startRow + i);
+        }
+    }
+    private void DrawHeader(Game game)
+    {
+        int titleHeight = game.gameMode == GameRunner.GameMode.SinglePlayer
+            ? -2
+            : -3;
+
+        DrawCenteredText(titleHeight, ConsoleColor.DarkGreen, "◆  S N A K E  ◆");
+        DrawPlayerInfo(game);
     }
 
-    private void DrawSkillbar(Snake snake)
+    private void DrawFooter(GameRunner.GameMode gameMode)
     {
+        DrawCanvaText(1, config.MapHeight, ConsoleColor.DarkGreen, "◦ ↑←↓→ + M  BOOST");
+        DrawCanvaText(config.MapWidth - 5, config.MapHeight, ConsoleColor.DarkGray, "ESC QUIT");
+        if (gameMode == GameRunner.GameMode.LocalVersus)
+        {
+            DrawCanvaText(1 + 10 ,config.MapHeight, ConsoleColor.DarkCyan, "◦ WASD + Q  BOOST");
+        }
+    }
+
+    private void DrawSkillbar(Player player, int mapRow)
+    {
+        Snake snake = player.snake;
+        ConsoleColor playerColor = player.Id == 1
+            ? ConsoleColor.Green
+            : ConsoleColor.Cyan;
+        string key = player.Id == 1 ? "M" : "Q";
+
         if (snake.CurrentSkillState == Snake.SkillState.Ready)
         {
             DrawSkillMeter(
                 progress: 1.0,
-                label: "READY [M]",
-                fillColor: ConsoleColor.Green,
-                textColor: ConsoleColor.Green);
+                label: $"READY [{key}]",
+                playerColor: playerColor,
+                fillColor: playerColor,
+                textColor: playerColor,
+                mapRow: mapRow);
             return;
         }
 
@@ -213,8 +281,10 @@ public class Renderer
             DrawSkillMeter(
                 progress: progress,
                 label: $"{seconds:0.0}s",
+                playerColor: playerColor,
                 fillColor: ConsoleColor.Yellow,
-                textColor: ConsoleColor.Yellow);
+                textColor: ConsoleColor.Yellow,
+                mapRow: mapRow);
             return;
         }
 
@@ -226,14 +296,16 @@ public class Renderer
             string label = FormatCooldown(progress);
 
             ConsoleColor color = progress >= 0.80
-                ? ConsoleColor.Green
+                ? playerColor
                 : ConsoleColor.Gray;
 
             DrawSkillMeter(
                 progress: progress,
                 label: label,
+                playerColor: playerColor,
                 fillColor: color,
-                textColor: color);
+                textColor: color,
+                mapRow: mapRow);
         }
     }
 
@@ -272,13 +344,13 @@ public class Renderer
     private void DrawCanvas(Game game)
     {
         DrawMap();
-        DrawFooter();
+        DrawHeader(game);
+        DrawPlayerSkillbars(game);
+        DrawFooter(game.gameMode);
         DrawFood(game.FoodList);
         foreach (Player player in game.PlayerList)
         {
-            DrawHeader(player);
             DrawSnake(player);
-            DrawSkillbar(player.snake);
         }
     }
 
