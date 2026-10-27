@@ -192,10 +192,10 @@ public class Game
                 );
                 opponent?.PlayerDie();
             }
-            bool isGameOver = _playerList.Any(snakex => !snakex.isAlive);
-            if (isGameOver)
-                State = GameState.GameOver;
         }
+        bool isGameOver = _playerList.Any(snakex => !snakex.isAlive);
+        if (isGameOver)
+            State = GameState.GameOver;
     }
 
     private void CheckEatFood(List<Player> movers)

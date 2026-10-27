@@ -245,7 +245,6 @@ public class Renderer
         }
     }
 
-    //考虑到skin，处理单元是player
     private void DrawSnake(Player player)
     {
         DrawCanvaCell(player.snake.Head.X, player.snake.Head.Y, player.snakeSkin.HeadColor);
@@ -259,6 +258,8 @@ public class Renderer
     {
         DrawCenteredText(config.MapHeight / 2, ConsoleColor.Blue, "P A U S E");
     }
+
+
 
     private void DrawGameOver(IReadOnlyList<Player> playerList)
     {
@@ -289,9 +290,7 @@ public class Renderer
         bool fullRedraw = isFirstFrame;
 
         if (fullRedraw)
-        {
             output.Append("\x1b[2J");
-        }
 
         for (int y = 0; y < currentFrame.Height; y++)
         {
@@ -317,6 +316,18 @@ public class Renderer
     }
 
     //API
+    public void RenderMenu()
+    {
+        currentFrame.Clear();//其实重启之后，画面也是衔接的，因为renderer还是原来那个，只是game重启了
+        int centerY = config.MapHeight / 2;
+        DrawMap();
+        DrawCenteredText(centerY - 2, ConsoleColor.DarkGreen, "Choose   Your   GameMode");
+        DrawCenteredText(centerY, ConsoleColor.White, "press  [1]: SinglePlayer");
+        DrawCenteredText(centerY + 1, ConsoleColor.White, "press  [2]: LocalVersus");
+
+        Present(previousFrame, currentFrame);
+        (previousFrame, currentFrame) = (currentFrame, previousFrame);
+    }
     public void RenderFrame(Game game)
     {
         currentFrame.Clear();

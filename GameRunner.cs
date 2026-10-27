@@ -85,17 +85,22 @@ public class GameRunner
 
             if (newDirection2 is { } direction2)
                 game.ToggleDirection(secondBindingPlayerId, direction2);
-                
+
             if (key == ConsoleKey.Q)
                 game.ToggleBoost(secondBindingPlayerId);
         }
     }
 
-    private GameMode ChooseGameMode()
+    private GameMode? ChooseGameMode()
     {
         while (true)
         {
             ConsoleKey key = Console.ReadKey(true).Key;
+            if (key == ConsoleKey.Escape)
+            {
+                _isRunning = false;
+                return null;
+            }
             if (key is ConsoleKey.D1 or ConsoleKey.NumPad1)
                 return GameMode.SinglePlayer;
             if (key is ConsoleKey.D2 or ConsoleKey.NumPad2)
@@ -121,9 +126,12 @@ public class GameRunner
         while (_isRunning)
         {
             //模式选择
-            GameMode gameMode = ChooseGameMode();
-            var game = new Game(Config, SkinConfig, gameMode);
+            renderer.RenderMenu();
+            GameMode? gameMode = ChooseGameMode();
+            if (gameMode is not GameMode selectedMode)
+                return;
 
+            var game = new Game(Config, SkinConfig, selectedMode);
             //游戏循环
             while (game.State != Game.GameState.GameOver && _isRunning)
             {
@@ -152,6 +160,7 @@ public class GameRunner
             }
             else
                 break;
+
         }
     }
 
