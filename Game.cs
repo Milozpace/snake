@@ -101,7 +101,7 @@ public class Game
     {
         Player2.snake.TryTurn(direction);
     }
-      public void ToggleBoost_2()
+    public void ToggleBoost_2()
     {
         Player2.snake.TryBoost();
     }
@@ -118,15 +118,21 @@ public class Game
 
         if (_accumulatorMs > SimStepMs)
         {
-            foreach (Snake snake in _snakeList)
+            var movers = new List<Player>();
+            foreach (Player player in _playerList)
             {
+                Snake snake = player.snake;
                 snake.UpdateSnake();
-                snake.Move();
-
+                bool isMove = snake.Move();
+                if (isMove)
+                    movers.Add(player);
             }
-            CheckEatFood();
+            if (movers.Count > 0)
+            {
+                CheckEatFood(movers);
+                CheckCollision(movers);
+            }
             SpawnFoodIfDue();
-            CheckCollision();//这个需要调整
 
             _accumulatorMs -= SimStepMs;
             return true;
@@ -163,20 +169,39 @@ public class Game
         _foodSpawnCooldownMs += FoodSpawnIntervalMs;
     }
 
-    private void CheckCollision()//重点升级对象//
+    private void CheckCollision(List<Player> movers)
     {
-        bool state_x = (snake1.Head.X <= 0 || snake1.Head.X >= Config.MapWidth - 1);
-        bool state_y = (snake1.Head.Y <= 0 || snake1.Head.Y >= Config.MapHeight - 1);
-        bool hitSelf = snake1.Body.Skip(1).Contains(snake1.Head);
-        if (state_x || state_y || hitSelf)
+        foreach (Player player in movers)//此处应当检查mover
         {
-            State = GameState.GameOver;
+            int dierNumber = 0;
+            Snake snake = player.snake;
+            bool hitWall = (snake.Head.X <= 0 ||
+                snake.Head.X >= Config.MapWidth - 1) ||
+                (snake.Head.Y <= 0 ||
+                snake.Head.Y >= Config.MapHeight - 1);
+
+            bool hitSelf = snake.Body.Skip(1).Contains(snake.Head);
+            bool hitOther = _snakeList.Any(other =>
+                other != snake &&
+                other.Body.Contains(snake.Head)
+            );
+            if (hitWall || hitSelf || hitOther)
+            {
+                Player? opponent = _playerList.FirstOrDefault(
+                    other => other != player &&
+                    other.snake.Head == snake.Head &&
+                    other.snake.CurrentDirection == player.snake.GetOppositeDirection()
+                );
+                opponent?.PlayerDie();
+            }
+            if (dierNumber > 0)
+                State = GameState.GameOver;//具体胜利还没有判定
         }
     }
 
-    private void CheckEatFood()
+    private void CheckEatFood(List<Player> movers)
     {
-        foreach (Player player in _playerList)
+        foreach (Player player in movers)
         {
             bool isEatFood = _foodList.Contains(player.snake.Head);
             if (!isEatFood)

@@ -63,7 +63,7 @@ public class Snake
         Point body_1 = new(head.X - directionVector.X, head.Y - directionVector.Y);
         Point body_2 = new(body_1.X - directionVector.X, body_1.Y - directionVector.Y);
 
-        _body = [head,body_1, body_2];
+        _body = [head, body_1, body_2];
 
         _currentDirection = initDirection;
 
@@ -120,7 +120,6 @@ public class Snake
                 CurrentSkillState = SkillState.CoolingDown;
                 _skillCooldownTimerMs = SkillCooldownMs;
             }
-
         }
     }
 
@@ -136,13 +135,23 @@ public class Snake
     {
         UpdateSkillState();
     }
-    public void Move()
+    public Direction? GetOppositeDirection()
+    {
+        Direction? oppositeDirection = CurrentDirection switch
+        {
+            Direction.Up => Direction.Down,
+            Direction.Down => Direction.Up,
+            Direction.Left => Direction.Right,
+            Direction.Right => Direction.Left,
+            _ => null
+        };
+        return oppositeDirection;
+    }
+    public bool Move()
     {
         _moveCooldownMs -= SimStepMs;
         if (_moveCooldownMs > 0)
-        {
-            return;
-        }
+            return false;
 
         UpdateDirection();
         previousTailPosition = _body[^1];
@@ -151,6 +160,7 @@ public class Snake
         _body.RemoveAt(_body.Count - 1);
 
         _moveCooldownMs += CurrentMoveIntervalMs;
+        return true;
     }
 
     public void TryTurn(Direction newDirection)

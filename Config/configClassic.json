@@ -7,6 +7,6 @@
     "SkillActiveMs": 5000,
     "MinMoveIntervalMs": 100,
     "MoveIntervalDecreaseMs": 4,
-    "FoodSpawnIntervalMs": 5000,
+    "FoodSpawnIntervalMs": 4000,
     "FoodScore": 5
 }
