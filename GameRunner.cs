@@ -1,14 +1,21 @@
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.CompilerServices;
 
-class GameRunner
+public class GameRunner
 {
+    //配置与成员
     private readonly GameConfig Config;
     private readonly SkinConfig SkinConfig;
-    private Game game;
+    //private Game game;
     private readonly Renderer renderer;
-
+    //游戏状况
     private bool _isRunning;
+    public enum GameMode
+    {
+        SinglePlayer,
+        LocalVersus
+    }
 
     Stopwatch _renderClock = Stopwatch.StartNew();
 
@@ -17,7 +24,6 @@ class GameRunner
     {
         Config = config;
         SkinConfig = skinConfig;
-        game = new(config, skinConfig);
         renderer = new(config);
 
         _isRunning = true;
@@ -25,7 +31,7 @@ class GameRunner
 
 
     //键盘输入接口 （to game）
-    private void HandlePlayingInput()
+    private void HandlePlayingInput(Game game)
     {
         if (!Console.KeyAvailable)
             return;
@@ -77,26 +83,28 @@ class GameRunner
         }
     }
 
+    private GameMode ChooseGameMode()
+    {
+        while (true)
+        {
+            ConsoleKey key = Console.ReadKey(true).Key;
+            if (key is ConsoleKey.D1 or ConsoleKey.NumPad1)
+                return GameMode.SinglePlayer;
+            if (key is ConsoleKey.D2 or ConsoleKey.NumPad2)
+                return GameMode.LocalVersus;
+        }
+    }
+
     private bool HandleGameOverInput()
     {
         while (true)
         {
             ConsoleKey key = Console.ReadKey(true).Key;
-            if (key is ConsoleKey.Enter or ConsoleKey.Escape)
-            {
-                switch (key)
-                {
-                    case ConsoleKey.Enter:
-                        return true;
-                    case ConsoleKey.Escape:
-                        {
-                            _isRunning = false;
-                            return false;
-                        }
-                }
-            }
+            if (key is ConsoleKey.Enter)
+                return true;
+            if (key is ConsoleKey.Escape)
+                return false;
         }
-
     }
 
     //运行游戏
@@ -104,9 +112,14 @@ class GameRunner
     {
         while (_isRunning)
         {
+            //模式选择
+            GameMode gameMode = ChooseGameMode();
+            var game = new Game(Config, SkinConfig, gameMode);
+
+            //游戏循环
             while (game.State != Game.GameState.GameOver && _isRunning)
             {
-                HandlePlayingInput();
+                HandlePlayingInput(game);
                 game.UpdateGameIfdue();
 
                 if (game.State == Game.GameState.GameOver)
@@ -114,25 +127,23 @@ class GameRunner
                     renderer.RenderFrame(game);
                     continue;
                 }
-
+                
                 if (_renderClock.ElapsedMilliseconds >= 40)
                 {
                     renderer.RenderFrame(game);
                     _renderClock.Restart();
                 }
 
-
                 Thread.Sleep(1);
             }
 
-            if (_isRunning)
+            //正常结束选择
+            if (_isRunning && HandleGameOverInput() == true)
             {
-                if (HandleGameOverInput() == true)
-                {
-                    game = new(Config, SkinConfig);
-                    continue;
-                }
+                continue;
             }
+            else
+                break;
         }
     }
 

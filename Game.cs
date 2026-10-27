@@ -12,12 +12,17 @@ public class Game
         GameOver
     }
     public GameState State { get; private set; }
+    public GameRunner.GameMode gameMode { get; init; }
+    public Player? Winner =>
+        State == GameState.GameOver
+            ? _playerList.FirstOrDefault(play => play.isAlive)
+            : null;
 
     //游戏成员
 
     private Snake snake1;
     private Snake snake2;
-    private readonly List<Snake> _snakeList = [];
+    private readonly List<Snake> _snakeList = [];//没有必要保留两个访问入口，只保留playerlist
     private readonly List<Player> _playerList = [];
     public IReadOnlyList<Player> PlayerList => _playerList;
     private Player Player1;
@@ -44,8 +49,9 @@ public class Game
 
 
     //Constructor
-    public Game(GameConfig config, SkinConfig skinConfig)
+    public Game(GameConfig config, SkinConfig skinConfig, GameRunner.GameMode gameMode)
     {
+        this.gameMode = gameMode;
         Config = config;
         this.skinConfig = skinConfig;
         SimStepMs = config.SimStepMs;
@@ -171,9 +177,8 @@ public class Game
 
     private void CheckCollision(List<Player> movers)
     {
-        foreach (Player player in movers)//此处应当检查mover
+        foreach (Player player in movers)
         {
-            int dierNumber = 0;
             Snake snake = player.snake;
             bool hitWall = (snake.Head.X <= 0 ||
                 snake.Head.X >= Config.MapWidth - 1) ||
@@ -187,6 +192,7 @@ public class Game
             );
             if (hitWall || hitSelf || hitOther)
             {
+                player.PlayerDie();
                 Player? opponent = _playerList.FirstOrDefault(
                     other => other != player &&
                     other.snake.Head == snake.Head &&
@@ -194,8 +200,9 @@ public class Game
                 );
                 opponent?.PlayerDie();
             }
-            if (dierNumber > 0)
-                State = GameState.GameOver;//具体胜利还没有判定
+            bool isGameOver = _playerList.Any(snakex => !snakex.isAlive);
+            if (isGameOver)
+                State = GameState.GameOver;
         }
     }
 
