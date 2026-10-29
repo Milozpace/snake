@@ -1,12 +1,14 @@
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
+using SnakeNetwork.Protocol;
 
 public class GameRunner
 {
     //配置与成员
     private readonly GameConfig Config;
     private readonly SkinConfig SkinConfig;
+    private readonly MqttTransport? _network;
     //private Game game;
     private readonly Renderer renderer;
     //游戏状况
@@ -20,15 +22,18 @@ public class GameRunner
     Stopwatch _renderClock = Stopwatch.StartNew();
 
     //Constructor
-    public GameRunner(GameConfig config, SkinConfig skinConfig)
+    public GameRunner(
+        GameConfig config,
+        SkinConfig skinConfig,
+        MqttTransport? network = null)
     {
         Config = config;
         SkinConfig = skinConfig;
+        _network = network;
         renderer = new(config);
 
         _isRunning = true;
     }
-
 
     //键盘输入接口 （to game）
     private void HandlePlayingInput(Game game)
@@ -52,7 +57,7 @@ public class GameRunner
         {
             //判断第二套按键的绑定对象
             int secondBindingPlayerId;
-            if (game.gameMode == GameMode.SinglePlayer)
+            if (game.gameMode == GameMode.SinglePlayer || _network != null)
                 secondBindingPlayerId = 1;
             else
                 secondBindingPlayerId = 2;
@@ -91,6 +96,17 @@ public class GameRunner
         }
     }
 
+    private void HandleRemoteInput(Game game)
+    {
+        if (_network is null)
+            return;
+        while (_network.TryReceive(out byte[]? received) && received is not null)
+        {
+            PlayerInput input = PlayerInput.Parser.ParseFrom(received);
+            RemoteInputProcessor.Apply(game, input);
+        }
+    }
+
     private GameMode? ChooseGameMode()
     {
         while (true)
@@ -120,6 +136,7 @@ public class GameRunner
         }
     }
 
+
     //运行游戏
     public void Rungame()
     {
@@ -136,6 +153,7 @@ public class GameRunner
             while (game.State != Game.GameState.GameOver && _isRunning)
             {
                 HandlePlayingInput(game);
+                HandleRemoteInput(game);
                 game.UpdateGameIfdue();
 
                 if (game.State == Game.GameState.GameOver)
