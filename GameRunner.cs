@@ -152,9 +152,11 @@ public class GameRunner
             //游戏循环
             while (game.State != Game.GameState.GameOver && _isRunning)
             {
+                //游戏逻辑更新已正常联机！
                 HandlePlayingInput(game);
                 HandleRemoteInput(game);
                 game.UpdateGameIfdue();
+                //还差一个画面同步
 
                 if (game.State == Game.GameState.GameOver)
                 {

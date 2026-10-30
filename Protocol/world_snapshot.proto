@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package snake;
+
+option csharp_namespace = "SnakeNetwork.Protocol";
+
+enum SkillStatus {
+  SKILL_STATUS_UNSPECIFIED  = 0;
+  SKILL_STATUS_READY        = 1;
+  SKILL_STATUS_ACTIVE       = 2;
+  SKILL_STATUS_COOLING_DOWN = 3;
+}
+
+enum GameState{
+  GAME_STATE_UNSPECIFIED = 0;
+  GAME_STATE_PLAYING     = 1;
+  GAME_STATE_PASUED      = 2;
+  GAME_STATE_GAMEOVER    = 3;
+}
+
+message GridPoint{
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message MapSize {
+  int32 width  = 1;
+  int32 height = 2;
+}
+
+message PlayerSnapshot{
+  int32              player_id               = 1;
+  int32              score                 = 2;
+  bool               is_alive              = 3;
+  repeated GridPoint body                  = 4;
+  SkillStatus        skill_status           = 5;
+  int32              active_remaining_ms   = 6;
+  int32              cooldown_remaining_ms = 7;
+}
+
+message WorldSnapshot
+{
+  uint64                  sequence   = 1;//画面序号，可以判断画面是不是最新的
+  repeated PlayerSnapshot players    = 2;
+  repeated GridPoint      foods      = 3;
+  GameState               game_state = 4;
+  MapSize                 map_size   = 5;
+}

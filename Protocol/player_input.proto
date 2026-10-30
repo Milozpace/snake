@@ -5,19 +5,16 @@ package snake;
 option csharp_namespace = "SnakeNetwork.Protocol";
 
 enum Direction {
-    DIRECTION_UNSPECIFIED = 0;
-    DIRECTION_UP = 1;
-    DIRECTION_DOWN = 2;
-    DIRECTION_LEFT = 3;
-    DIRECTION_RIGHT = 4;
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_UP          = 1;
+  DIRECTION_DOWN        = 2;
+  DIRECTION_LEFT        = 3;
+  DIRECTION_RIGHT       = 4;
 }
 
-//使用这个就可以包装信息吧？
 message PlayerInput{
-    int32 play_id = 1;
-    Direction direction = 2;
-    bool boost = 3;
+  int32     play_id   = 1;
+  Direction direction = 2;
+  bool      boost     = 3;
 }
 
-//message类型，每一个成员有对应的通信结构，包括
-//int32（数据类型） play_id（字段名称） = 1（字段编号）
