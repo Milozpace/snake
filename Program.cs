@@ -7,7 +7,7 @@ using Google.Protobuf;
 using SnakeNetwork.Protocol;
 
 string GameJson = File.ReadAllText("./Config/configClassic.json");
-string SkinsJson = File.ReadAllText("./Skin/skins.json");
+string SkinsJson = File.ReadAllText("./Renderer/Skin/skins.json");
 GameConfig config =
     JsonSerializer.Deserialize<GameConfig>(GameJson)
     ?? throw new InvalidDataException("Invalid game configuration");
