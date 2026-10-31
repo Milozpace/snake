@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using System.Reflection.PortableExecutable;
 using System.Text;
 
@@ -69,7 +70,6 @@ public class Renderer
         }
     }
 
-    //明天再看
     private void DrawCanvaRichText(
     int x,
     int y,
@@ -183,13 +183,19 @@ public class Renderer
 
 
     //调用方法
-    private void DrawMap()
+    private void DrawMap() =>
+        DrawMap(config.MapWidth, config.MapHeight);
+
+    private void DrawMap(IGameView game) =>
+        DrawMap(game.MapWidth, game.MapHeight);
+
+    private void DrawMap(int width, int height)
     {
-        for (int y = 0; y < config.MapHeight; y++)
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < config.MapWidth; x++)
+            for (int x = 0; x < width; x++)
             {
-                if (x == 0 || y == 0 || x == config.MapWidth - 1 || y == config.MapHeight - 1)
+                if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
                 {
                     DrawCanvaCell(x, y, ConsoleColor.DarkGray);
                 }
@@ -197,14 +203,14 @@ public class Renderer
         }
     }
 
-    private void DrawPlayerInfo(Game game)
+    private void DrawPlayerInfo(IGameView game)
     {
-        int play1RowHeight = game.PlayerList.Count == 1
+        int play1RowHeight = game.Players.Count == 1
             ? -1
             : -2;
-        for (int i = 0; i < game.PlayerList.Count; i++)
+        for (int i = 0; i < game.Players.Count; i++)
         {
-            Player player = game.PlayerList[i];
+            IPlayerView player = game.Players[i];
 
             ConsoleColor playerColor = player.Id == 1
                 ? ConsoleColor.Green
@@ -231,11 +237,11 @@ public class Renderer
             DrawSkillbar(game.PlayerList[i], startRow + i);
         }
     }
-    private void DrawHeader(Game game)
+    private void DrawHeader(IGameView game)
     {
-        int titleHeight = game.gameMode == GameRunner.GameMode.SinglePlayer
-            ? -2
-            : -3;
+        int titleHeight = game.Players.Count is 2
+            ? -3
+            : -2;
 
         DrawCenteredText(titleHeight, ConsoleColor.DarkGreen, "◆  S N A K E  ◆");
         DrawPlayerInfo(game);
@@ -317,12 +323,13 @@ public class Renderer
         }
     }
 
-    private void DrawSnake(Player player)
+    private void DrawSnake(IPlayerView player)
     {
-        DrawCanvaCell(player.snake.Head.X, player.snake.Head.Y, player.snakeSkin.HeadColor);
-        foreach (Point segment in player.snake.Body.Skip(1))
+        Point head = player.Body[0];
+        DrawCanvaCell(head.X, head.Y, player.SnakeSkin.HeadColor);
+        foreach (Point segment in player.Body.Skip(1))
         {
-            DrawCanvaCell(segment.X, segment.Y, player.snakeSkin.BodyColor);
+            DrawCanvaCell(segment.X, segment.Y, player.SnakeSkin.BodyColor);
         }
     }
 
@@ -335,7 +342,7 @@ public class Renderer
 
     private void DrawGameOver(Game game)
     {
-        bool isVersus = game.gameMode == GameRunner.GameMode.LocalVersus;
+        bool isVersus = game.gameMode.PlayerCount() > 1;
         Player? winner = isVersus ? game.Winner : null;
 
         string title = !isVersus
@@ -462,14 +469,18 @@ public class Renderer
                 (ConsoleColor.DarkGray, "  QUIT"));
         }
     }
+
+
+    ////////////////////////最终整合
     private void DrawCanvas(Game game)
     {
-        DrawMap();
+        IGameView view = game;
+        DrawMap(game);
         DrawHeader(game);
         DrawPlayerSkillbars(game);
         DrawFooter(game.gameMode);
         DrawFood(game.FoodList);
-        foreach (Player player in game.PlayerList)
+        foreach (IPlayerView player in view.Players)
         {
             DrawSnake(player);
         }
@@ -514,9 +525,10 @@ public class Renderer
         currentFrame.Clear();
         DrawMap();
 
+        IReadOnlyList<GameRunner.GameMode> modes = GameModes.StartMenu;
         int mapWidthChars = config.MapWidth * 2;
         int panelWidth = Math.Clamp(mapWidthChars - 16, 32, 50);
-        int panelHeight = 10;
+        int panelHeight = 6 + modes.Count * 2;
         int x = MapOriginX + (mapWidthChars - panelWidth) / 2;
         int y = MapOriginY + (config.MapHeight - panelHeight) / 2;
 
@@ -537,9 +549,25 @@ public class Renderer
 
         DrawMenuText(y + 1, "◆  S N A K E  ◆", ConsoleColor.Green);
         DrawScreenText(x + 2, y + 2, ConsoleColor.DarkGray, new string('─', panelWidth - 4));
-        DrawMenuText(y + 4, "[1]  SINGLE PLAYER", ConsoleColor.Green);
-        DrawMenuText(y + 6, "[2]  LOCAL VERSUS", ConsoleColor.Cyan);
-        DrawMenuText(y + 8, "1 / 2  START      ESC  QUIT", ConsoleColor.DarkGray);
+
+        for (int i = 0; i < modes.Count; i++)
+        {
+            GameRunner.GameMode mode = modes[i];
+            ConsoleColor color = mode == GameRunner.GameMode.SinglePlayer
+                ? ConsoleColor.Green
+                : ConsoleColor.Cyan;
+
+            DrawMenuText(
+                y + 4 + i * 2,
+                $"[{i + 1}]  {mode.DisplayName()}",
+                color);
+        }
+
+        string startKeys = string.Join(" / ", Enumerable.Range(1, modes.Count));
+        DrawMenuText(
+            y + panelHeight - 2,
+            $"{startKeys}  START      ESC  QUIT",
+            ConsoleColor.DarkGray);
 
         Present(previousFrame, currentFrame);
         (previousFrame, currentFrame) = (currentFrame, previousFrame);

@@ -17,7 +17,8 @@ public class GameRunner
     public enum GameMode
     {
         SinglePlayer,
-        LocalVersus
+        LocalVersus,
+        OnlineVersus
     }
 
     //计时器

@@ -2,7 +2,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-public class Game
+public class Game : IGameView
 {
     //游戏状态
     public enum GameState
@@ -24,6 +24,13 @@ public class Game
 
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
+
+    //interface：IGameView
+    int IGameView.MapWidth => Config.MapWidth;
+    int IGameView.MapHeight => Config.MapHeight;
+    IReadOnlyList<IPlayerView> IGameView.Players => _playerList;
+    IReadOnlyList<Point> IGameView.Foods => _foodList;
+
 
     //计时
     private readonly Stopwatch _clock = Stopwatch.StartNew();
@@ -61,7 +68,7 @@ public class Game
         _playerList.Add(Player1);
 
         //将玩家2的初始化放到条件后面
-        if (gameMode is GameRunner.GameMode.LocalVersus)
+        if (gameMode.PlayerCount() > 1)
         {
             var snake2 = new Snake(config, new(3, 1), Snake.Direction.Left);
             var Player2 = new Player(02, snake2, skinConfig.Player2);
