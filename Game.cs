@@ -15,7 +15,7 @@ public class Game : IGameView
     public GameRunner.GameMode gameMode { get; init; }
     public Player? Winner =>
         State == GameState.GameOver
-            ? _playerList.FirstOrDefault(play => play.isAlive)
+            ? _playerList.FirstOrDefault(play => play.IsAlive)
             : null;
 
     //游戏成员
@@ -30,6 +30,7 @@ public class Game : IGameView
     int IGameView.MapHeight => Config.MapHeight;
     IReadOnlyList<IPlayerView> IGameView.Players => _playerList;
     IReadOnlyList<Point> IGameView.Foods => _foodList;
+    GameState IGameView.GameStatus => State;
 
 
     //计时
@@ -200,7 +201,7 @@ public class Game : IGameView
                 opponent?.PlayerDie();
             }
         }
-        bool isGameOver = _playerList.Any(snakex => !snakex.isAlive);
+        bool isGameOver = _playerList.Any(snakex => !snakex.IsAlive);
         if (isGameOver)
             State = GameState.GameOver;
     }

@@ -21,6 +21,8 @@ if (args.Contains("--proto-guest"))
     Console.WriteLine("按 Enter 开始游戏...");
     Console.ReadLine();
 
+    
+
     while (true)
     {
         while (guest.TryReceive(out byte[]? received) && received is not null)
@@ -60,7 +62,7 @@ if (args.Contains("--proto-guest"))
 
         var input = new PlayerInput()
         {
-            PlayId = 2,
+            PlayerId = 2,
             Direction = inputDirection,
             Boost = boost
         };
@@ -120,7 +122,7 @@ if (args.Contains("--proto-host"))
 else
 {
     string GameJson = File.ReadAllText("./Config/configClassic.json");
-    string SkinsJson = File.ReadAllText("./Skin/skins.json");
+    string SkinsJson = File.ReadAllText("./Renderer/Skin/skins.json");
     GameConfig config =
         JsonSerializer.Deserialize<GameConfig>(GameJson)
         ?? throw new InvalidDataException("Invalid game configuration");

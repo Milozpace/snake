@@ -35,7 +35,7 @@ public static class WorldSnapshotFactory
         return state switch
         {
             Game.GameState.Playing => GameState.Playing,
-            Game.GameState.Paused => GameState.Pasued,
+            Game.GameState.Paused => GameState.Paused,
             Game.GameState.GameOver => GameState.GameOver,
             _ => GameState.Unspecified
         };
@@ -58,7 +58,7 @@ public static class WorldSnapshotFactory
         {
             PlayerId = player.Id,
             Score = player.Score,
-            IsAlive = player.isAlive,
+            IsAlive = player.IsAlive,
             SkillStatus = ToProtoSkillStatus(player.snake.CurrentSkillState),
             ActiveRemainingMs = player.snake._skillActiveTimerMs,
             CooldownRemainingMs = player.snake._skillCooldownTimerMs

@@ -5,9 +5,12 @@ public class Player : IPlayerView
 
 
     public int Score { get; private set; } = 0;
+    public Snake.SkillState SkillState => snake.CurrentSkillState;
+    public int SkillActiveRemainingMs => snake._skillActiveTimerMs;
+    public int SkillCooldownRemainingMs => snake._skillCooldownTimerMs;
     public Snake snake { get; }
     public SnakeSkin SnakeSkin { get; init; }
-    public bool isAlive { get; private set; } = true;
+    public bool IsAlive { get; private set; } = true;
 
     public Player(int id, Snake snake, SnakeSkin skin)
     {
@@ -23,6 +26,6 @@ public class Player : IPlayerView
 
     public void PlayerDie()
     {
-        isAlive = false;
+        IsAlive = false;
     }
 }

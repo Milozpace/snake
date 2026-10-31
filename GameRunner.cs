@@ -42,7 +42,7 @@ public class GameRunner
         Config = config;
         SkinConfig = skinConfig;
         _network = network;
-        renderer = new(config);
+        renderer = new(config, skinConfig);
 
         if (_network != null)
             _snapshotClock = Stopwatch.StartNew();
@@ -51,10 +51,13 @@ public class GameRunner
     }
 
     //键盘输入接口 （to game）
-    private void HandlePlayingInput(Game game)
+    private async void HandlePlayingInput(Game game)
     {
         if (!Console.KeyAvailable)
+        {
+            await Task.Delay(20);
             return;
+        }
 
         ConsoleKey key = Console.ReadKey(true).Key;
 

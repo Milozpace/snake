@@ -5,6 +5,7 @@ using System.Text;
 public class Renderer
 {
     private readonly GameConfig config;
+    private readonly SkinConfig skinConfig;
     private const int MapOriginX = 12;
     private const int MapOriginY = 7;
 
@@ -34,9 +35,11 @@ public class Renderer
     private FrameBuffer previousFrame;
     private bool isFirstFrame;
 
-    public Renderer(GameConfig config)
+    //Constructor
+    public Renderer(GameConfig config, SkinConfig skinConfig)
     {
         this.config = config;
+        this.skinConfig = skinConfig;
         currentFrame = new(
             MapOriginX + config.MapWidth * 2 + 10,
             MapOriginY + config.MapHeight + 5
@@ -99,6 +102,7 @@ public class Renderer
     }
 
     private void DrawSkillMeter(
+        IGameView game,
         double progress,
         string label,
         ConsoleColor playerColor,
@@ -108,10 +112,10 @@ public class Renderer
     {
         const int labelWidth = 9;
 
-        int mapWidthChars = config.MapWidth * 2;
+        int mapWidthChars = game.MapWidth * 2;
         int reservedWidth = 7 + 2 + labelWidth;
         int maxBarWidth = Math.Max(1, mapWidthChars - reservedWidth);
-        int barWidth = Math.Clamp(config.MapWidth / 4, 6, 12);
+        int barWidth = Math.Clamp(game.MapWidth / 4, 6, 12);
         barWidth = Math.Min(barWidth, maxBarWidth);
 
         progress = Math.Clamp(progress, 0.0, 1.0);
@@ -183,19 +187,13 @@ public class Renderer
 
 
     //调用方法
-    private void DrawMap() =>
-        DrawMap(config.MapWidth, config.MapHeight);
-
-    private void DrawMap(IGameView game) =>
-        DrawMap(game.MapWidth, game.MapHeight);
-
-    private void DrawMap(int width, int height)
+    private void DrawMap()
     {
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < config.MapHeight; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < config.MapWidth; x++)
             {
-                if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
+                if (x == 0 || y == 0 || x == config.MapWidth - 1 || y == config.MapHeight)
                 {
                     DrawCanvaCell(x, y, ConsoleColor.DarkGray);
                 }
@@ -225,18 +223,19 @@ public class Renderer
         }
     }
 
-    private static int GetPlayerInfoStartRow(Game game) =>
-        game.PlayerList.Count == 1 ? -1 : -2;
+    private static int GetPlayerInfoStartRow(IGameView game) =>
+        game.Players.Count == 1 ? -1 : -2;
 
-    private void DrawPlayerSkillbars(Game game)
+    private void DrawPlayerSkillbars(IGameView game)
     {
         int startRow = GetPlayerInfoStartRow(game);
 
-        for (int i = 0; i < game.PlayerList.Count; i++)
+        for (int i = 0; i < game.Players.Count; i++)
         {
-            DrawSkillbar(game.PlayerList[i], startRow + i);
+            DrawSkillbar(game, game.Players[i], startRow + i);
         }
     }
+    
     private void DrawHeader(IGameView game)
     {
         int titleHeight = game.Players.Count is 2
@@ -247,27 +246,27 @@ public class Renderer
         DrawPlayerInfo(game);
     }
 
-    private void DrawFooter(GameRunner.GameMode gameMode)
+    private void DrawFooter(IGameView game)
     {
         DrawCanvaText(1, config.MapHeight, ConsoleColor.DarkGreen, "◦ ↑←↓→ + M  BOOST");
         DrawCanvaText(config.MapWidth - 5, config.MapHeight, ConsoleColor.DarkGray, "ESC QUIT");
-        if (gameMode == GameRunner.GameMode.LocalVersus)
+        if (game.Players.Count > 1)
         {
-            DrawCanvaText(1 + 10 ,config.MapHeight, ConsoleColor.DarkCyan, "◦ WASD + Q  BOOST");
+            DrawCanvaText(1 + 10, config.MapHeight, ConsoleColor.DarkCyan, "◦ WASD + Q  BOOST");
         }
     }
 
-    private void DrawSkillbar(Player player, int mapRow)
+    private void DrawSkillbar(IGameView game, IPlayerView player, int mapRow)
     {
-        Snake snake = player.snake;
         ConsoleColor playerColor = player.Id == 1
             ? ConsoleColor.Green
             : ConsoleColor.Cyan;
         string key = player.Id == 1 ? "M" : "Q";
 
-        if (snake.CurrentSkillState == Snake.SkillState.Ready)
+        if (player.SkillState == Snake.SkillState.Ready)
         {
             DrawSkillMeter(
+                game,
                 progress: 1.0,
                 label: $"READY [{key}]",
                 playerColor: playerColor,
@@ -277,14 +276,15 @@ public class Renderer
             return;
         }
 
-        if (snake.CurrentSkillState == Snake.SkillState.Active)
+        if (player.SkillState == Snake.SkillState.Active)
         {
             double progress =
-                (double)snake._skillActiveTimerMs / snake.SkillActiveMs;
+                (double)player.SkillActiveRemainingMs / config.SkillActiveMs;
 
-            double seconds = snake._skillActiveTimerMs / 1000.0;
+            double seconds = player.SkillActiveRemainingMs / 1000.0;
 
             DrawSkillMeter(
+                game,
                 progress: progress,
                 label: $"{seconds:0.0}s",
                 playerColor: playerColor,
@@ -294,10 +294,10 @@ public class Renderer
             return;
         }
 
-        if (snake.CurrentSkillState == Snake.SkillState.CoolingDown)
+        if (player.SkillState == Snake.SkillState.CoolingDown)
         {
             double progress =
-                1.0 - (double)snake._skillCooldownTimerMs / snake.SkillCooldownMs;
+                1.0 - (double)player.SkillCooldownRemainingMs / config.SkillCooldownMs;
 
             string label = FormatCooldown(progress);
 
@@ -306,6 +306,7 @@ public class Renderer
                 : ConsoleColor.Gray;
 
             DrawSkillMeter(
+                game,
                 progress: progress,
                 label: label,
                 playerColor: playerColor,
@@ -325,11 +326,21 @@ public class Renderer
 
     private void DrawSnake(IPlayerView player)
     {
+        if (player.Body.Count == 0)
+            return;
+
+        SnakeSkin skin = player.Id switch
+        {
+            1 => skinConfig.Player1,
+            2 => skinConfig.Player2,
+            _ => throw new ArgumentOutOfRangeException(nameof(player.Id))
+        };
+
         Point head = player.Body[0];
-        DrawCanvaCell(head.X, head.Y, player.SnakeSkin.HeadColor);
+        DrawCanvaCell(head.X, head.Y, skin.HeadColor);
         foreach (Point segment in player.Body.Skip(1))
         {
-            DrawCanvaCell(segment.X, segment.Y, player.SnakeSkin.BodyColor);
+            DrawCanvaCell(segment.X, segment.Y, skin.BodyColor);
         }
     }
 
@@ -338,12 +349,12 @@ public class Renderer
         DrawCenteredText(config.MapHeight / 2, ConsoleColor.Blue, "P A U S E");
     }
 
-
-
-    private void DrawGameOver(Game game)
+    private void DrawGameOver(IGameView game)
     {
-        bool isVersus = game.gameMode.PlayerCount() > 1;
-        Player? winner = isVersus ? game.Winner : null;
+        bool isVersus = game.Players.Count > 1;
+        IPlayerView? winner = isVersus
+            ? game.Players.FirstOrDefault(p => p.IsAlive)
+            : null;
 
         string title = !isVersus
             ? "GAME OVER"
@@ -425,9 +436,9 @@ public class Renderer
 
         if (isVersus)
         {
-            for (int i = 0; i < game.PlayerList.Count; i++)
+            for (int i = 0; i < game.Players.Count; i++)
             {
-                Player player = game.PlayerList[i];
+                IPlayerView player = game.Players[i];
                 ConsoleColor playerColor = player.Id == 1
                     ? ConsoleColor.Green
                     : ConsoleColor.Cyan;
@@ -438,7 +449,7 @@ public class Renderer
                     (ConsoleColor.DarkGray, "SCORE "),
                     (ConsoleColor.White, $"{player.Score:D3}"),
                     (ConsoleColor.DarkGray, "   LEN "),
-                    (ConsoleColor.White, $"{player.snake.Body.Count:D2}"));
+                    (ConsoleColor.White, $"{player.Body.Count:D2}"));
             }
 
             DrawCenteredRuns(
@@ -451,14 +462,14 @@ public class Renderer
         }
         else
         {
-            Player player = game.PlayerList[0];
+            IPlayerView player = game.Players[0];
 
             DrawCenteredRuns(
                 panelY + 3,
                 (ConsoleColor.DarkGray, "SCORE "),
                 (ConsoleColor.White, $"{player.Score:D3}"),
                 (ConsoleColor.DarkGray, "   LEN "),
-                (ConsoleColor.White, $"{player.snake.Body.Count:D2}"));
+                (ConsoleColor.White, $"{player.Body.Count:D2}"));
 
             DrawCenteredRuns(
                 panelY + 5,
@@ -471,16 +482,15 @@ public class Renderer
     }
 
 
-    ////////////////////////最终整合
-    private void DrawCanvas(Game game)
+    ////////////////////////最终整合//////////////////////
+    private void DrawCanvas(IGameView game)
     {
-        IGameView view = game;
-        DrawMap(game);
+        DrawMap();
         DrawHeader(game);
         DrawPlayerSkillbars(game);
-        DrawFooter(game.gameMode);
-        DrawFood(game.FoodList);
-        foreach (IPlayerView player in view.Players)
+        DrawFooter(game);
+        DrawFood(game.Foods);
+        foreach (IPlayerView player in game.Players)
         {
             DrawSnake(player);
         }
@@ -572,14 +582,14 @@ public class Renderer
         Present(previousFrame, currentFrame);
         (previousFrame, currentFrame) = (currentFrame, previousFrame);
     }
-    public void RenderFrame(Game game)
+    public void RenderFrame(IGameView game)
     {
         currentFrame.Clear();
         DrawCanvas(game);
 
-        if (game.State == Game.GameState.Paused)
+        if (game.GameStatus == Game.GameState.Paused)
             DrawPause();
-        if (game.State == Game.GameState.GameOver)
+        if (game.GameStatus == Game.GameState.GameOver)
             DrawGameOver(game);
 
         Present(previousFrame, currentFrame);
