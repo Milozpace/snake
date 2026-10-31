@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
+using Google.Protobuf;
 using SnakeNetwork.Protocol;
 
 public class GameRunner
@@ -8,7 +9,7 @@ public class GameRunner
     //配置与成员
     private readonly GameConfig Config;
     private readonly SkinConfig SkinConfig;
-    private readonly MqttTransport? _network;
+
     //private Game game;
     private readonly Renderer renderer;
     //游戏状况
@@ -19,7 +20,17 @@ public class GameRunner
         LocalVersus
     }
 
-    Stopwatch _renderClock = Stopwatch.StartNew();
+    //计时器
+    private readonly Stopwatch _renderClock = Stopwatch.StartNew();
+    private readonly Stopwatch? _snapshotClock;
+
+    //net
+    private Task? _snapshotPublishTask;
+    private readonly MqttTransport? _network;
+    private int _intervalMs = 100;
+    private ulong _sequence = 0;
+    private string? _publishError;
+
 
     //Constructor
     public GameRunner(
@@ -31,6 +42,9 @@ public class GameRunner
         SkinConfig = skinConfig;
         _network = network;
         renderer = new(config);
+
+        if (_network != null)
+            _snapshotClock = Stopwatch.StartNew();
 
         _isRunning = true;
     }
@@ -136,6 +150,51 @@ public class GameRunner
         }
     }
 
+    private async Task PublisherWorldAsync(Game game)
+    {
+        if (_network is null)
+            return;
+
+        var worldSnapshot = WorldSnapshotFactory.FromGame(Config, game, _sequence);
+        byte[] worldData = worldSnapshot.ToByteArray();
+        await _network.PublishAsync("snake/world", worldData);
+    }
+
+    private void UpdateWorldBroadcast(Game game)
+    {
+
+        if (_snapshotPublishTask is { IsFaulted: true } failedTask)
+        {
+            _publishError ??=
+                failedTask.Exception?.GetBaseException().Message
+                ?? "未知的 MQTT 发布错误";
+        }
+        else if (_snapshotPublishTask is { IsCanceled: true })
+        {
+            _publishError ??= "MQTT 发布任务被取消";
+        }
+        else if (_snapshotPublishTask is { IsCompletedSuccessfully: true })
+        {
+            _publishError = null;
+        }
+
+        _intervalMs = _publishError is null
+            ? 100
+            : 1000;
+
+        if (_snapshotClock?.ElapsedMilliseconds >= _intervalMs)
+        {
+            if (_snapshotPublishTask is null || _snapshotPublishTask.IsCompleted)
+            {
+                _sequence++;
+                _snapshotPublishTask = PublisherWorldAsync(game);
+                _snapshotClock.Restart();
+            }
+        }
+
+
+    }
+
 
     //运行游戏
     public void Rungame()
@@ -152,11 +211,10 @@ public class GameRunner
             //游戏循环
             while (game.State != Game.GameState.GameOver && _isRunning)
             {
-                //游戏逻辑更新已正常联机！
                 HandlePlayingInput(game);
                 HandleRemoteInput(game);
                 game.UpdateGameIfdue();
-                //还差一个画面同步
+                UpdateWorldBroadcast(game);
 
                 if (game.State == Game.GameState.GameOver)
                 {

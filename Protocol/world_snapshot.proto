@@ -15,7 +15,7 @@ enum GameState{
   GAME_STATE_UNSPECIFIED = 0;
   GAME_STATE_PLAYING     = 1;
   GAME_STATE_PASUED      = 2;
-  GAME_STATE_GAMEOVER    = 3;
+  GAME_STATE_GAME_OVER    = 3;
 }
 
 message GridPoint{

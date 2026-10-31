@@ -9,9 +9,10 @@ using SnakeNetwork.Protocol;
 
 if (args.Contains("--proto-guest"))
 {
-    var sender = new MqttTransport();
+    var guest = new MqttTransport();
 
-    await sender.ConnectAsync("127.0.0.1", 1883);
+    await guest.ConnectAsync("127.0.0.1", 1883);
+    await guest.SubscribeAsync("snake/world");
 
     Console.WriteLine("连接host成功! 按 Enter 开始游戏...");
     Console.ReadLine();
@@ -50,7 +51,7 @@ if (args.Contains("--proto-guest"))
         };
 
         byte[] data = input.ToByteArray();
-        await sender.PublishAsync("snake/input", data);
+        await guest.PublishAsync("snake/input", data);
     }
     return;
 }

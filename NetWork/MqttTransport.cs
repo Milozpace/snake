@@ -6,9 +6,7 @@ public class MqttTransport
     private readonly IMqttClient _client;
 
     private readonly ConcurrentQueue<byte[]> _inbox = new();
-    //也就是说，我们现在需要一个队列进行这个存储。然而，虽然完成了连接和订阅topic，
-    // 但收到信息之后要怎么处理，还是没有去定义和处理
-    //这里则是使用接收信息并把他放进这个队列里面，供我们后续去处理
+ 
 
     public MqttTransport()
     {

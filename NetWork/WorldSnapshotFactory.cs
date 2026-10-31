@@ -68,7 +68,7 @@ public static class WorldSnapshotFactory
         return snapshot;
     }
 
-    public static WorldSnapshot CopyMyWorld(GameConfig config, Game game, ulong sequence)
+    public static WorldSnapshot FromGame(GameConfig config, Game game, ulong sequence)
     {
         var worldSnapshot = new WorldSnapshot()
         {
