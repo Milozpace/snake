@@ -36,7 +36,7 @@ public static class WorldSnapshotFactory
         {
             Game.GameState.Playing => GameState.Playing,
             Game.GameState.Paused => GameState.Pasued,
-            Game.GameState.GameOver => GameState.Gameover,
+            Game.GameState.GameOver => GameState.GameOver,
             _ => GameState.Unspecified
         };
     }

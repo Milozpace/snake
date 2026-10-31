@@ -11,14 +11,29 @@ if (args.Contains("--proto-guest"))
 {
     var guest = new MqttTransport();
 
-    await guest.ConnectAsync("127.0.0.1", 1883);
+    string brokerHost = "127.0.0.1";
+    int brokerPort = 1883;
+
+    await guest.ConnectAsync(brokerHost, brokerPort);
     await guest.SubscribeAsync("snake/world");
 
-    Console.WriteLine("连接host成功! 按 Enter 开始游戏...");
+    Console.WriteLine($"已连接 MQTT Broker:{brokerHost}:{brokerPort}");
+    Console.WriteLine("按 Enter 开始游戏...");
     Console.ReadLine();
-    Console.WriteLine("已开始游戏，请移动吧！...");
+
     while (true)
     {
+        while (guest.TryReceive(out byte[]? received) && received is not null)
+        {
+            WorldSnapshot snapshot = WorldSnapshot.Parser.ParseFrom(received);
+
+            Console.WriteLine(
+                $"Seq: {snapshot.Sequence}, " +
+                $"Players: {snapshot.Players.Count}, " +
+                $"Foods: {snapshot.Foods.Count}"
+            );
+        }
+
         if (!Console.KeyAvailable)
         {
             await Task.Delay(20);
@@ -53,6 +68,7 @@ if (args.Contains("--proto-guest"))
         byte[] data = input.ToByteArray();
         await guest.PublishAsync("snake/input", data);
     }
+    Console.ReadLine();
     return;
 }
 
@@ -62,9 +78,13 @@ if (args.Contains("--proto-host"))
 {
     var host = new MqttTransport();
 
-    await host.ConnectAsync("127.0.0.1", 1883);
+    string brokerHost = "127.0.0.1";
+    int brokerPort = 1883;
+    await host.ConnectAsync(brokerHost, brokerPort);
     await host.SubscribeAsync("snake/input");
-    Console.WriteLine("连接成功! 按 Enter 启动游戏...");
+
+    Console.WriteLine($"已连接 MQTT Broker:{brokerHost}:{brokerPort}");
+    Console.WriteLine("按 Enter 启动游戏...");
     Console.ReadLine();
 
     string GameJson = File.ReadAllText("./Config/configClassic.json");
