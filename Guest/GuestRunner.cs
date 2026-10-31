@@ -10,6 +10,8 @@ using SnakeNetwork.Protocol;
 
 public class GuestRunner
 {
+    //游戏状态（提供退出）
+    private bool _isRunning = true;
     //配置与渲染环境
     private readonly GameConfig Config;
     private readonly SkinConfig SkinConfig;
@@ -47,6 +49,12 @@ public class GuestRunner
             return;
 
         ConsoleKey key = Console.ReadKey(true).Key;
+
+        if (key == ConsoleKey.Escape)
+        {
+            _isRunning = false;
+            return;
+        }
 
         bool useBoost = false;
         if (key is ConsoleKey.Q or ConsoleKey.M)
@@ -127,11 +135,11 @@ public class GuestRunner
     //API
     public void RunGuestClient()
     {
-        while (true)
+        while (_isRunning)
         {
             HandlePlayerInput();
             UpdateInputPublishing();
-            
+
             if (_snapshotUpdateClock.ElapsedMilliseconds >= 5)
             {
                 UpdateWorldView();
@@ -143,10 +151,6 @@ public class GuestRunner
                 renderer.RenderFrame(_currentView);
                 _renderClock.Restart();
             }
-
-
-
-
 
             Thread.Sleep(1);
         }

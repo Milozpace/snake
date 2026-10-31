@@ -6,6 +6,22 @@ using System.Text.Json.Serialization;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
 
+string GameJson = File.ReadAllText("./Config/configClassic.json");
+string SkinsJson = File.ReadAllText("./Skin/skins.json");
+GameConfig config =
+    JsonSerializer.Deserialize<GameConfig>(GameJson)
+    ?? throw new InvalidDataException("Invalid game configuration");
+
+JsonSerializerOptions skinJsonOptions = new();
+skinJsonOptions.Converters.Add(new JsonStringEnumConverter());
+
+SkinConfig skinConfig = JsonSerializer.Deserialize<SkinConfig>(
+        SkinsJson,
+        skinJsonOptions
+    )
+    ?? throw new InvalidDataException("Invalid skin configuration");
+
+//////////////////////////////////////////////
 
 if (args.Contains("--proto-guest"))
 {
@@ -13,7 +29,6 @@ if (args.Contains("--proto-guest"))
 
     string brokerHost = "127.0.0.1";
     int brokerPort = 1883;
-
     await guest.ConnectAsync(brokerHost, brokerPort);
     await guest.SubscribeAsync("snake/world");
 
@@ -21,62 +36,24 @@ if (args.Contains("--proto-guest"))
     Console.WriteLine("按 Enter 开始游戏...");
     Console.ReadLine();
 
-    
 
-    while (true)
-    {
-        while (guest.TryReceive(out byte[]? received) && received is not null)
-        {
-            WorldSnapshot snapshot = WorldSnapshot.Parser.ParseFrom(received);
+    Console.Write("\x1b[?1049h");
+    Console.Clear();
+    Console.CursorVisible = false;
 
-            Console.WriteLine(
-                $"Seq: {snapshot.Sequence}, " +
-                $"Players: {snapshot.Players.Count}, " +
-                $"Foods: {snapshot.Foods.Count}"
-            );
-        }
+    GuestRunner guestRunner = new(config, skinConfig, guest);
+    guestRunner.RunGuestClient();
 
-        if (!Console.KeyAvailable)
-        {
-            await Task.Delay(20);
-            continue;
-        }
+    Console.CursorVisible = true;
+    Console.Clear();
+    Console.Write("\x1b[?1049l");
 
-        ConsoleKey key = Console.ReadKey(true).Key;
-        if (key is ConsoleKey.Enter)
-            break;
-
-
-        bool boost = false;
-        if (key is ConsoleKey.Q or ConsoleKey.M)
-            boost = true;
-
-        Direction inputDirection = key switch
-        {
-            ConsoleKey.UpArrow => Direction.Up,
-            ConsoleKey.DownArrow => Direction.Down,
-            ConsoleKey.LeftArrow => Direction.Left,
-            ConsoleKey.RightArrow => Direction.Right,
-            _ => Direction.Unspecified
-        };
-
-        var input = new PlayerInput()
-        {
-            PlayerId = 2,
-            Direction = inputDirection,
-            Boost = boost
-        };
-
-        byte[] data = input.ToByteArray();
-        await guest.PublishAsync("snake/input", data);
-    }
-    Console.ReadLine();
     return;
 }
 
 
 
-if (args.Contains("--proto-host"))
+else if (args.Contains("--proto-host"))
 {
     var host = new MqttTransport();
 
@@ -88,21 +65,6 @@ if (args.Contains("--proto-host"))
     Console.WriteLine($"已连接 MQTT Broker:{brokerHost}:{brokerPort}");
     Console.WriteLine("按 Enter 启动游戏...");
     Console.ReadLine();
-
-    string GameJson = File.ReadAllText("./Config/configClassic.json");
-    string SkinsJson = File.ReadAllText("./Skin/skins.json");
-    GameConfig config =
-        JsonSerializer.Deserialize<GameConfig>(GameJson)
-        ?? throw new InvalidDataException("Invalid game configuration");
-
-    JsonSerializerOptions skinJsonOptions = new();
-    skinJsonOptions.Converters.Add(new JsonStringEnumConverter());
-
-    SkinConfig skinConfig = JsonSerializer.Deserialize<SkinConfig>(
-            SkinsJson,
-            skinJsonOptions
-        )
-        ?? throw new InvalidDataException("Invalid skin configuration");
 
 
     Console.Write("\x1b[?1049h");
@@ -118,25 +80,9 @@ if (args.Contains("--proto-host"))
 
     return;
 }
-/////////////////////////////////////////////////////////////////////
+//正常游戏
 else
 {
-    string GameJson = File.ReadAllText("./Config/configClassic.json");
-    string SkinsJson = File.ReadAllText("./Renderer/Skin/skins.json");
-    GameConfig config =
-        JsonSerializer.Deserialize<GameConfig>(GameJson)
-        ?? throw new InvalidDataException("Invalid game configuration");
-
-    JsonSerializerOptions skinJsonOptions = new();
-    skinJsonOptions.Converters.Add(new JsonStringEnumConverter());
-
-    SkinConfig skinConfig = JsonSerializer.Deserialize<SkinConfig>(
-            SkinsJson,
-            skinJsonOptions
-        )
-        ?? throw new InvalidDataException("Invalid skin configuration");
-
-
     Console.Write("\x1b[?1049h");
     Console.Clear();
     Console.CursorVisible = false;

@@ -193,7 +193,7 @@ public class Renderer
         {
             for (int x = 0; x < config.MapWidth; x++)
             {
-                if (x == 0 || y == 0 || x == config.MapWidth - 1 || y == config.MapHeight)
+                if (x == 0 || y == 0 || x == config.MapWidth - 1 || y == config.MapHeight - 1)
                 {
                     DrawCanvaCell(x, y, ConsoleColor.DarkGray);
                 }
