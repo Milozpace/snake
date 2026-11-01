@@ -115,14 +115,11 @@ public class GuestRunner
         return WorldSnapshot.Parser.ParseFrom(received);
     }
 
-
-    //！！非常的干货
-    //？？管理_currentView，保持最新的状态
     private void UpdateWorldView()
     {
         while (ReceiveSnapshot() is { } snapshot)
         {
-            if (_currentView is null || snapshot.Sequence > _sequence)//意义不明但暂时保留……
+            if (_currentView is null || snapshot.Sequence > _sequence)
             {
                 _sequence = snapshot.Sequence;
                 _currentView = new GuestWorldView(snapshot);

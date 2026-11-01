@@ -51,13 +51,10 @@ public class GameRunner
     }
 
     //键盘输入接口 （to game）
-    private async void HandlePlayingInput(Game game)
+    private void HandlePlayingInput(Game game)
     {
         if (!Console.KeyAvailable)
-        {
-            await Task.Delay(20);
             return;
-        }
 
         ConsoleKey key = Console.ReadKey(true).Key;
 
@@ -154,7 +151,7 @@ public class GameRunner
         }
     }
 
-    private async Task PublisherWorldAsync(Game game)
+    private async Task PublisherSnapshotAsync(Game game)
     {
         if (_network is null)
             return;
@@ -164,7 +161,7 @@ public class GameRunner
         await _network.PublishAsync("snake/world", worldData);
     }
 
-    private void UpdateWorldBroadcast(Game game)
+    private void UpdateSnapshotBroadcast(Game game)
     {
 
         if (_snapshotPublishTask is { IsFaulted: true } failedTask)
@@ -191,17 +188,36 @@ public class GameRunner
             if (_snapshotPublishTask is null || _snapshotPublishTask.IsCompleted)
             {
                 _sequence++;
-                _snapshotPublishTask = PublisherWorldAsync(game);
+                _snapshotPublishTask = PublisherSnapshotAsync(game);
                 _snapshotClock.Restart();
             }
         }
+    }
 
+    private async Task PublishFinalSnapshotAsync(Game game)
+    {
+        if (_network is null)
+            return;
 
+        if (_snapshotPublishTask is not null)
+        {
+            try
+            {
+                await _snapshotPublishTask;
+            }
+            catch(Exception ex)
+            {
+                _publishError = ex.GetBaseException().Message;
+            }
+        }
+
+        _sequence ++;
+        await PublisherSnapshotAsync(game);
     }
 
 
     //运行游戏
-    public void Rungame()
+    public async void Rungame()
     {
         while (_isRunning)
         {
@@ -218,13 +234,15 @@ public class GameRunner
                 HandlePlayingInput(game);
                 HandleRemoteInput(game);
                 game.UpdateGameIfdue();
-                UpdateWorldBroadcast(game);
 
+                //保证最后一帧能正常渲染与发布
                 if (game.State == Game.GameState.GameOver)
                 {
                     renderer.RenderFrame(game);
-                    continue;
+                    await PublishFinalSnapshotAsync(game);
+                    break;
                 }
+                UpdateSnapshotBroadcast(game);
 
                 if (_renderClock.ElapsedMilliseconds >= 40)
                 {

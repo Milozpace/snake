@@ -27,8 +27,8 @@ if (args.Contains("--proto-guest"))
 {
     var guest = new MqttTransport();
 
-    string brokerHost = "127.0.0.1";
-    int brokerPort = 1883;
+    string brokerHost = "192.168.2.162";
+    int brokerPort = 1884;
     await guest.ConnectAsync(brokerHost, brokerPort);
     await guest.SubscribeAsync("snake/world");
 
@@ -52,13 +52,12 @@ if (args.Contains("--proto-guest"))
 }
 
 
-
 else if (args.Contains("--proto-host"))
 {
     var host = new MqttTransport();
 
-    string brokerHost = "127.0.0.1";
-    int brokerPort = 1883;
+    string brokerHost = "192.168.2.162";
+    int brokerPort = 1884;
     await host.ConnectAsync(brokerHost, brokerPort);
     await host.SubscribeAsync("snake/input");
 
