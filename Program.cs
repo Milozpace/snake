@@ -8,7 +8,7 @@ using SnakeNetwork.Protocol;
 
 string baseDir = AppContext.BaseDirectory;
 
-string gamePath = Path.Combine(baseDir,"Config", "configClassic.json");
+string gamePath = Path.Combine(baseDir, "Config", "configClassic.json");
 string skinPath = Path.Combine(baseDir, "Renderer", "Skin", "skins.json");
 
 string GameJson = File.ReadAllText(gamePath);
@@ -27,7 +27,7 @@ SkinConfig skinConfig = JsonSerializer.Deserialize<SkinConfig>(
     )
     ?? throw new InvalidDataException("Invalid skin configuration");
 
-//////////////////////////////////////////////
+///////////////////////////////////////////////////////
 
 string brokerHost = "127.0.0.1";
 int brokerPort = 1883;
@@ -57,8 +57,6 @@ if (brokerIndex >= 0)
     }
 }
 
-
-
 if (args.Contains("--proto-guest"))
 {
     var guest = new MqttTransport();
@@ -70,19 +68,22 @@ if (args.Contains("--proto-guest"))
     Console.WriteLine("按 Enter 开始游戏...");
     Console.ReadLine();
 
+    try
+    {
+        Console.Write("\x1b[?1049h");
+        Console.Clear();
+        Console.CursorVisible = false;
 
-    Console.Write("\x1b[?1049h");
-    Console.Clear();
-    Console.CursorVisible = false;
+        GuestRunner guestRunner = new(config, skinConfig, guest);
+        guestRunner.RunGuestClient();
+    }
+    finally
+    {
+        Console.CursorVisible = true;
+        Console.Clear();
+        Console.Write("\x1b[?1049l");
+    }
 
-    GuestRunner guestRunner = new(config, skinConfig, guest);
-    guestRunner.RunGuestClient();
-
-    Console.CursorVisible = true;
-    Console.Clear();
-    Console.Write("\x1b[?1049l");
-
-    return;
 }
 
 
@@ -90,38 +91,45 @@ else if (args.Contains("--proto-host"))
 {
     var host = new MqttTransport();
 
-await host.ConnectAsync(brokerHost, brokerPort);
-await host.SubscribeAsync("snake/input");
+    await host.ConnectAsync(brokerHost, brokerPort);
+    await host.SubscribeAsync("snake/input");
 
-Console.WriteLine($"已连接 MQTT Broker:{brokerHost}:{brokerPort}");
-Console.WriteLine("按 Enter 启动游戏...");
-Console.ReadLine();
+    Console.WriteLine($"已连接 MQTT Broker:{brokerHost}:{brokerPort}");
+    Console.WriteLine("按 Enter 启动游戏...");
+    Console.ReadLine();
 
+    try
+    {
+        Console.Write("\x1b[?1049h");
+        Console.Clear();
+        Console.CursorVisible = false;
 
-Console.Write("\x1b[?1049h");
-Console.Clear();
-Console.CursorVisible = false;
-
-GameRunner gameRunner = new(config, skinConfig, host);
-await gameRunner.RungameAsync();
-
-Console.CursorVisible = true;
-Console.Clear();
-Console.Write("\x1b[?1049l");
-
-return;
+        GameRunner gameRunner = new(config, skinConfig, host);
+        await gameRunner.RungameAsync();
+    }
+    finally
+    {
+        Console.CursorVisible = true;
+        Console.Clear();
+        Console.Write("\x1b[?1049l");
+    }
 }
 //正常游戏
 else
 {
-    Console.Write("\x1b[?1049h");
-    Console.Clear();
-    Console.CursorVisible = false;
+    try
+    {
+        Console.Write("\x1b[?1049h");
+        Console.Clear();
+        Console.CursorVisible = false;
 
-    GameRunner gameRunner = new(config, skinConfig);
-    await gameRunner.RungameAsync();
-
-    Console.CursorVisible = true;
-    Console.Clear();
-    Console.Write("\x1b[?1049l");
+        GameRunner gameRunner = new(config, skinConfig);
+        await gameRunner.RungameAsync();
+    }
+    finally
+    {
+        Console.CursorVisible = true;
+        Console.Clear();
+        Console.Write("\x1b[?1049l");
+    }
 }
