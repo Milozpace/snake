@@ -38,6 +38,7 @@ public class Game : IGameView
 
     private long _lastUpdateMs = 0;
     private long _accumulatorMs = 0;
+    private const int MaxCatchUpSteps = 8;
 
     public int SimStepMs { get; init; }
 
@@ -113,16 +114,18 @@ public class Game : IGameView
     }
 
     //处理游戏-接口
-    public bool UpdateGameIfdue()
+    public void UpdateGameIfdue()
     {
         if (State != GameState.Playing)
-            return false;
+            return;
 
         long now = _clock.ElapsedMilliseconds;
         _accumulatorMs += now - _lastUpdateMs;
         _lastUpdateMs = now;
 
-        if (_accumulatorMs > SimStepMs)
+        int step = 0;
+
+        while (_accumulatorMs > SimStepMs && step < MaxCatchUpSteps)
         {
             var movers = new List<Player>();
             foreach (Player player in _playerList)
@@ -141,10 +144,8 @@ public class Game : IGameView
             SpawnFoodIfDue();
 
             _accumulatorMs -= SimStepMs;
-            return true;
+            step++;
         }
-        else
-            return false;
     }
 
     //游戏处理
