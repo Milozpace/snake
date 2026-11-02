@@ -196,7 +196,7 @@ public class Game : IGameView
                 Player? opponent = _playerList.FirstOrDefault(
                     other => other != player &&
                     other.snake.Head == snake.Head &&
-                    other.snake.CurrentDirection == player.snake.GetOppositeDirection()
+                    other.snake.CurrentDirection == Snake.GetOppositeDirection(snake.CurrentDirection)
                 );
                 opponent?.PlayerDie();
             }

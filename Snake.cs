@@ -135,17 +135,17 @@ public class Snake
     {
         UpdateSkillState();
     }
-    public Direction? GetOppositeDirection()
+    public static Direction GetOppositeDirection(Direction direction)
     {
-        Direction? oppositeDirection = CurrentDirection switch
+        return direction switch
         {
             Direction.Up => Direction.Down,
             Direction.Down => Direction.Up,
             Direction.Left => Direction.Right,
             Direction.Right => Direction.Left,
-            _ => null
+            _ => throw new ArgumentOutOfRangeException(nameof(direction))
         };
-        return oppositeDirection;
+
     }
     public bool Move()
     {
@@ -165,27 +165,18 @@ public class Snake
 
     public void TryTurn(Direction newDirection)
     {
+        if (_pendingDIrection.Count >= MaxBufferedTurns)
+            return;
+
         Direction lastDirection = _pendingDIrection.Count > 0
             ? _pendingDIrection.Last()
             : _currentDirection;
 
-        bool isBannedDirection = (lastDirection, newDirection) switch
-        {
-            (Direction.Up, Direction.Down) => true,
-            (Direction.Down, Direction.Up) => true,
-            (Direction.Left, Direction.Right) => true,
-            (Direction.Right, Direction.Left) => true,
-            (Direction.Up, Direction.Up) => true,
-            (Direction.Down, Direction.Down) => true,
-            (Direction.Left, Direction.Left) => true,
-            (Direction.Right, Direction.Right) => true,
-            _ => false
-        };
+        if (newDirection == lastDirection ||
+            newDirection == GetOppositeDirection(lastDirection))
+            return;
 
-        if (!isBannedDirection && _pendingDIrection.Count < MaxBufferedTurns)
-        {
-            _pendingDIrection.Enqueue(newDirection);
-        }
+        _pendingDIrection.Enqueue(newDirection); 
     }
 
     public void Grow()
