@@ -57,6 +57,7 @@ if (brokerIndex >= 0)
     }
 }
 
+//GUEST
 if (args.Contains("--proto-guest"))
 {
     var guest = new MqttTransport();
@@ -68,25 +69,15 @@ if (args.Contains("--proto-guest"))
     Console.WriteLine("按 Enter 开始游戏...");
     Console.ReadLine();
 
-    try
+    GuestRunner guestRunner = new(config, skinConfig, guest);
+    await RunInGameScreenAsync(() =>
     {
-        Console.Write("\x1b[?1049h");
-        Console.Clear();
-        Console.CursorVisible = false;
-
-        GuestRunner guestRunner = new(config, skinConfig, guest);
         guestRunner.RunGuestClient();
-    }
-    finally
-    {
-        Console.CursorVisible = true;
-        Console.Clear();
-        Console.Write("\x1b[?1049l");
-    }
-
+        return Task.CompletedTask;
+    });
 }
 
-
+//HOST
 else if (args.Contains("--proto-host"))
 {
     var host = new MqttTransport();
@@ -98,24 +89,18 @@ else if (args.Contains("--proto-host"))
     Console.WriteLine("按 Enter 启动游戏...");
     Console.ReadLine();
 
-    try
-    {
-        Console.Write("\x1b[?1049h");
-        Console.Clear();
-        Console.CursorVisible = false;
-
-        GameRunner gameRunner = new(config, skinConfig, host);
-        await gameRunner.RungameAsync();
-    }
-    finally
-    {
-        Console.CursorVisible = true;
-        Console.Clear();
-        Console.Write("\x1b[?1049l");
-    }
+    GameRunner gameRunner = new(config, skinConfig, host);
+    await RunInGameScreenAsync(gameRunner.RungameAsync);
 }
 //正常游戏
 else
+{
+    GameRunner gameRunner = new(config, skinConfig);
+    await RunInGameScreenAsync(gameRunner.RungameAsync);
+}
+
+
+static async Task RunInGameScreenAsync(Func<Task> runGame)
 {
     try
     {
@@ -123,8 +108,7 @@ else
         Console.Clear();
         Console.CursorVisible = false;
 
-        GameRunner gameRunner = new(config, skinConfig);
-        await gameRunner.RungameAsync();
+        await runGame();
     }
     finally
     {
