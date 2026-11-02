@@ -235,7 +235,7 @@ public class Renderer
             DrawSkillbar(game, game.Players[i], startRow + i);
         }
     }
-    
+
     private void DrawHeader(IGameView game)
     {
         int titleHeight = game.Players.Count is 2
@@ -530,15 +530,16 @@ public class Renderer
     }
 
     //API
+
     public void RenderMenu()
     {
         currentFrame.Clear();
         DrawMap();
 
-        IReadOnlyList<GameRunner.GameMode> modes = GameModes.StartMenu;
         int mapWidthChars = config.MapWidth * 2;
         int panelWidth = Math.Clamp(mapWidthChars - 16, 32, 50);
-        int panelHeight = 6 + modes.Count * 2;
+        const int panelHeight = 10;
+
         int x = MapOriginX + (mapWidthChars - panelWidth) / 2;
         int y = MapOriginY + (config.MapHeight - panelHeight) / 2;
 
@@ -548,8 +549,11 @@ public class Renderer
             DrawScreenText(textX, row, color, text);
         }
 
-        DrawScreenText(x, y, ConsoleColor.DarkGreen, "╔" + new string('═', panelWidth - 2) + "╗");
-        DrawScreenText(x, y + panelHeight - 1, ConsoleColor.DarkGreen, "╚" + new string('═', panelWidth - 2) + "╝");
+        DrawScreenText(x, y, ConsoleColor.DarkGreen,
+            "╔" + new string('═', panelWidth - 2) + "╗");
+
+        DrawScreenText(x, y + panelHeight - 1, ConsoleColor.DarkGreen,
+            "╚" + new string('═', panelWidth - 2) + "╝");
 
         for (int row = 1; row < panelHeight - 1; row++)
         {
@@ -558,30 +562,21 @@ public class Renderer
         }
 
         DrawMenuText(y + 1, "◆  S N A K E  ◆", ConsoleColor.Green);
-        DrawScreenText(x + 2, y + 2, ConsoleColor.DarkGray, new string('─', panelWidth - 4));
 
-        for (int i = 0; i < modes.Count; i++)
-        {
-            GameRunner.GameMode mode = modes[i];
-            ConsoleColor color = mode == GameRunner.GameMode.SinglePlayer
-                ? ConsoleColor.Green
-                : ConsoleColor.Cyan;
+        DrawScreenText(x + 2, y + 2, ConsoleColor.DarkGray,
+            new string('─', panelWidth - 4));
 
-            DrawMenuText(
-                y + 4 + i * 2,
-                $"[{i + 1}]  {mode.DisplayName()}",
-                color);
-        }
+        DrawMenuText(y + 4, "[1]  SINGLE PLAYER", ConsoleColor.Green);
+        DrawMenuText(y + 6, "[2]  LOCAL VERSUS", ConsoleColor.Cyan);
 
-        string startKeys = string.Join(" / ", Enumerable.Range(1, modes.Count));
-        DrawMenuText(
-            y + panelHeight - 2,
-            $"{startKeys}  START      ESC  QUIT",
-            ConsoleColor.DarkGray);
+        DrawMenuText(y + panelHeight - 2,
+            "1 / 2  START      ESC  QUIT", ConsoleColor.DarkGray);
 
         Present(previousFrame, currentFrame);
         (previousFrame, currentFrame) = (currentFrame, previousFrame);
     }
+
+
     public void RenderFrame(IGameView game)
     {
         currentFrame.Clear();

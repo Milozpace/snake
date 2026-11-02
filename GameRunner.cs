@@ -222,8 +222,13 @@ public class GameRunner
         while (_isRunning)
         {
             //模式选择
-            renderer.RenderMenu();
-            GameMode? gameMode = ChooseGameMode();
+            if (_network is null)
+                renderer.RenderMenu();
+            
+            GameMode? gameMode = _network is null
+                ?ChooseGameMode()
+                :GameMode.OnlineVersus;
+
             if (gameMode is not GameMode selectedMode)
                 return;
 

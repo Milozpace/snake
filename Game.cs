@@ -69,7 +69,7 @@ public class Game : IGameView
         _playerList.Add(Player1);
 
         //将玩家2的初始化放到条件后面
-        if (gameMode.PlayerCount() > 1)
+        if (gameMode is not GameRunner.GameMode.SinglePlayer)
         {
             var snake2 = new Snake(config, new(3, 1), Snake.Direction.Left);
             var Player2 = new Player(02, snake2, skinConfig.Player2);
