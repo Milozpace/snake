@@ -153,26 +153,31 @@ public class Game : IGameView
     {
         _foodSpawnCooldownMs -= SimStepMs;
         if (_foodSpawnCooldownMs > 0)
-        {
             return;
+
+        List<Point> availablePositions = [];
+        for (int y = 2; y < Config.MapHeight - 2; y++)
+        {
+            for (int x = 2; x < Config.MapWidth - 2; x++)
+            {
+                Point position = new(x, y);
+
+                bool isOccupied = _playerList.Any(
+                    player => player.snake.Body.Contains(position) ||
+                    _foodList.Contains(position)
+                );
+
+                if (!isOccupied)
+                    availablePositions.Add(position);
+            }
         }
 
-        bool isOccupied;
-        do
+        if (availablePositions.Count > 0)
         {
-            var newFood = new Point(
-            Random.Shared.Next(2, Config.MapWidth - 2),
-            Random.Shared.Next(2, Config.MapHeight - 2)
-            );
+            int index = Random.Shared.Next(availablePositions.Count);
+            _foodList.Add(availablePositions[index]);
+        }
 
-            isOccupied = _playerList.Any(
-                player => player.snake.Body.Contains(newFood)) ||
-                _foodList.Contains(newFood);
-            if (!isOccupied)
-            {
-                _foodList.Add(newFood);
-            }
-        } while (isOccupied);
         _foodSpawnCooldownMs += FoodSpawnIntervalMs;
     }
 
