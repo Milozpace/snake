@@ -24,4 +24,12 @@
     <Protobuf Include="Protocol/world_snapshot.proto" GrpcServices="None" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Config/*.json;Renderer/Skin/*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
+  </ItemGroup>
+
 </Project>
