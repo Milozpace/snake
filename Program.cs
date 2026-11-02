@@ -70,11 +70,7 @@ if (args.Contains("--proto-guest"))
     Console.ReadLine();
 
     GuestRunner guestRunner = new(config, skinConfig, guest);
-    await RunInGameScreenAsync(() =>
-    {
-        guestRunner.RunGuestClient();
-        return Task.CompletedTask;
-    });
+    await guestRunner.RunGuestClient();
 }
 
 //HOST

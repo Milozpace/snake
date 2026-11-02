@@ -130,7 +130,7 @@ public class GuestRunner
 
 
     //API
-    public void RunGuestClient()
+    public async Task RunGuestClient()
     {
         while (_isRunning)
         {
@@ -152,6 +152,8 @@ public class GuestRunner
             Thread.Sleep(1);
         }
 
+        if (_inputPublishTask is not null)
+            await _inputPublishTask;
     }
 
 
