@@ -103,7 +103,7 @@ Console.Clear();
 Console.CursorVisible = false;
 
 GameRunner gameRunner = new(config, skinConfig, host);
-gameRunner.Rungame();
+await gameRunner.RungameAsync();
 
 Console.CursorVisible = true;
 Console.Clear();
@@ -119,7 +119,7 @@ else
     Console.CursorVisible = false;
 
     GameRunner gameRunner = new(config, skinConfig);
-    gameRunner.Rungame();
+    await gameRunner.RungameAsync();
 
     Console.CursorVisible = true;
     Console.Clear();

@@ -217,7 +217,7 @@ public class GameRunner
 
 
     //运行游戏
-    public async void Rungame()
+    public async Task RungameAsync()
     {
         while (_isRunning)
         {
