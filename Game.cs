@@ -12,7 +12,7 @@ public class Game : IGameView
         GameOver
     }
     public GameState State { get; private set; }
-    public GameRunner.GameMode gameMode { get; init; }
+    public GameMode Mode { get; }
     public Player? Winner =>
         State == GameState.GameOver
             ? _playerList.FirstOrDefault(play => play.IsAlive)
@@ -52,9 +52,9 @@ public class Game : IGameView
 
 
     //Constructor
-    public Game(GameConfig config, SkinConfig skinConfig, GameRunner.GameMode gameMode)
+    public Game(GameConfig config, SkinConfig skinConfig, GameMode gameMode)
     {
-        this.gameMode = gameMode;
+        Mode = gameMode;
         Config = config;
         this.skinConfig = skinConfig;
         SimStepMs = config.SimStepMs;
@@ -69,7 +69,7 @@ public class Game : IGameView
         _playerList.Add(Player1);
 
         //将玩家2的初始化放到条件后面
-        if (gameMode is not GameRunner.GameMode.SinglePlayer)
+        if (gameMode is not GameMode.SinglePlayer)
         {
             var snake2 = new Snake(config, new(3, 1), Snake.Direction.Left);
             var Player2 = new Player(02, snake2, skinConfig.Player2);

@@ -14,12 +14,6 @@ public class GameRunner
     private readonly Renderer renderer;
     //游戏状况
     private bool _isRunning;
-    public enum GameMode
-    {
-        SinglePlayer,
-        LocalVersus,
-        OnlineVersus
-    }
 
     //计时器
     private readonly Stopwatch _renderClock = Stopwatch.StartNew();
@@ -72,7 +66,7 @@ public class GameRunner
         {
             //判断第二套按键的绑定对象
             int secondBindingPlayerId;
-            if (game.gameMode == GameMode.SinglePlayer || _network != null)
+            if (game.Mode == GameMode.SinglePlayer || _network != null)
                 secondBindingPlayerId = 1;
             else
                 secondBindingPlayerId = 2;
