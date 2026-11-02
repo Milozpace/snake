@@ -64,10 +64,10 @@ public class GuestRunner
 
         Direction inputDirection = key switch
         {
-            ConsoleKey.UpArrow => Direction.Up,
-            ConsoleKey.DownArrow => Direction.Down,
-            ConsoleKey.LeftArrow => Direction.Left,
-            ConsoleKey.RightArrow => Direction.Right,
+            ConsoleKey.UpArrow or ConsoleKey.W => Direction.Up,
+            ConsoleKey.DownArrow or ConsoleKey.S => Direction.Down,
+            ConsoleKey.LeftArrow or ConsoleKey.A => Direction.Left,
+            ConsoleKey.RightArrow or ConsoleKey.D => Direction.Right,
             _ => Direction.Unspecified
         };
 
