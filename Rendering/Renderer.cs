@@ -3,6 +3,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using snake.Core;
 using snake.Rendering.Skin;
+using snake.Core.Primitives;
 
 namespace snake.Rendering;
 

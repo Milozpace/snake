@@ -1,6 +1,7 @@
 namespace snake.Core;
 
 using snake.Rendering.Skin;
+using snake.Core.Primitives;
 
 public class Player : IPlayerView
 {

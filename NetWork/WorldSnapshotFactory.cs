@@ -1,5 +1,6 @@
 using SnakeNetwork.Protocol;
 using snake.Core;
+using snake.Core.Primitives;
 
 public static class WorldSnapshotFactory
 {

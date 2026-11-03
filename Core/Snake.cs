@@ -2,6 +2,7 @@ using System.ComponentModel.Design.Serialization;
 using System.Data;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using snake.Core.Primitives;
 
 namespace snake.Core;
 
@@ -23,14 +24,6 @@ public class Snake
            : _baseMoveIntervalMs;
 
     //Direction
-    public enum Direction
-    {
-        Up,
-        Down,
-        Left,
-        Right
-    }
-    //这个不应该写在这里的！ 这个可以独立出来，以及对应的一些实现，而不是作为snake的一部分
     //（就像之前在gamemode做的那样）
     private Direction _currentDirection;
     public Direction CurrentDirection => _currentDirection;
@@ -63,9 +56,9 @@ public class Snake
     {
         Point head = new(config.MapWidth / 2 + offsetFromCenter.X, config.MapHeight / 2 + offsetFromCenter.Y);
 
-        Point directionVector = ToDeltaPoint(initDirection);
-        Point body_1 = new(head.X - directionVector.X, head.Y - directionVector.Y);
-        Point body_2 = new(body_1.X - directionVector.X, body_1.Y - directionVector.Y); 
+        Point delta = DirectionExtensions.get_Delta(initDirection);
+        Point body_1 = new(head.X - delta.X, head.Y - delta.Y);
+        Point body_2 = new(body_1.X - delta.X, body_1.Y - delta.Y); 
         //其实这里的配置就耦合了？
         //这个初始的写的有点长了（次要问题）
 
@@ -84,22 +77,10 @@ public class Snake
 
     }
 
-    //私有工具方法（你看，我自己都知道这是“计算工具”了，所以这些是可以大胆分开的）
-    private static Point ToDeltaPoint(Direction direction)//direction -> 方向向量
-    {
-        Point directionVector = direction switch
-        {
-            Direction.Up => new Point(0, -1),
-            Direction.Down => new Point(0, 1),
-            Direction.Left => new Point(-1, 0),
-            Direction.Right => new Point(1, 0),
-            _ => throw new ArgumentException()//这里的new语法可以优化（有编辑器提示）
-        };
-        return directionVector;
-    }
+
     private Point CalculateNextHead()//调用了上一个函数，けっきょく，完成的任务就是一个事情嘛
     {
-        Point delta = ToDeltaPoint(CurrentDirection);
+        Point delta = CurrentDirection.Delta;
 
         Point newHead = new(
             Head.X + delta.X,
@@ -146,18 +127,7 @@ public class Snake
     {
         UpdateSkillState();
     }
-    public static Direction GetOppositeDirection(Direction direction) //这个也是direction的独门方法才对
-    {
-        return direction switch
-        {
-            Direction.Up => Direction.Down,
-            Direction.Down => Direction.Up,
-            Direction.Left => Direction.Right,
-            Direction.Right => Direction.Left,
-            _ => throw new ArgumentOutOfRangeException(nameof(direction))
-        };
 
-    }
     public bool Move() //这是move的核心方法，
     {
         _moveCooldownMs -= SimStepMs;
@@ -184,7 +154,7 @@ public class Snake
             : _currentDirection;
 
         if (newDirection == lastDirection ||
-            newDirection == GetOppositeDirection(lastDirection))
+            newDirection == lastDirection.Opposite)
             return;
 
         _pendingDIrection.Enqueue(newDirection); 
@@ -211,6 +181,3 @@ public class Snake
     }
 }
 
-public record Point(int X, int Y); //可以放去别的地方吗？
-
-//extension的使用……

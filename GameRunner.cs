@@ -4,21 +4,22 @@ using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
 using snake.Core;
+using GameDirection = snake.Core.Primitives.Direction;
 using snake.Rendering;
 using snake.Rendering.Skin;
 
+
 public class GameRunner
 {
-    //配置与成员
+    //Config and Member
     private readonly GameConfig Config;
     private readonly SkinConfig SkinConfig;
-
-    //private Game game;
     private readonly Renderer renderer;
+
     //游戏状况
     private bool _isRunning;
 
-    //计时器
+    //计时器(这是属于render的！)
     private readonly Stopwatch _renderClock = Stopwatch.StartNew();
     private readonly Stopwatch? _snapshotClock;
 
@@ -75,12 +76,12 @@ public class GameRunner
                 secondBindingPlayerId = 2;
 
             //按键一
-            Snake.Direction? newDirection1 = key switch
+            GameDirection? newDirection1 = key switch
             {
-                ConsoleKey.UpArrow => Snake.Direction.Up,
-                ConsoleKey.DownArrow => Snake.Direction.Down,
-                ConsoleKey.LeftArrow => Snake.Direction.Left,
-                ConsoleKey.RightArrow => Snake.Direction.Right,
+                ConsoleKey.UpArrow => GameDirection.Up,
+                ConsoleKey.DownArrow => GameDirection.Down,
+                ConsoleKey.LeftArrow => GameDirection.Left,
+                ConsoleKey.RightArrow => GameDirection.Right,
                 _ => null
             };
             if (newDirection1 is { } direction1)
@@ -91,12 +92,12 @@ public class GameRunner
 
 
             //按键二
-            Snake.Direction? newDirection2 = key switch
+            GameDirection? newDirection2 = key switch
             {
-                ConsoleKey.W => Snake.Direction.Up,
-                ConsoleKey.S => Snake.Direction.Down,
-                ConsoleKey.A => Snake.Direction.Left,
-                ConsoleKey.D => Snake.Direction.Right,
+                ConsoleKey.W => GameDirection.Up,
+                ConsoleKey.S => GameDirection.Down,
+                ConsoleKey.A => GameDirection.Left,
+                ConsoleKey.D => GameDirection.Right,
                 _ => null
             };
 

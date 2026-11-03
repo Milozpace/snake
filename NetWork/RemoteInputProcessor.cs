@@ -1,6 +1,7 @@
 using SnakeNetwork.Protocol;
 using ProtoDirection = SnakeNetwork.Protocol.Direction;
 using snake.Core;
+using GameDirection = snake.Core.Primitives.Direction;
 
 public static class RemoteInputProcessor
 {
@@ -12,12 +13,12 @@ public static class RemoteInputProcessor
         ProtoDirection inputDirection = input.Direction;
         bool useBoost = input.Boost;
 
-        Snake.Direction? newDirection = inputDirection switch
+        GameDirection? newDirection = inputDirection switch
         {
-            ProtoDirection.Up => Snake.Direction.Up,
-            ProtoDirection.Down => Snake.Direction.Down,
-            ProtoDirection.Left => Snake.Direction.Left,
-            ProtoDirection.Right => Snake.Direction.Right,
+            ProtoDirection.Up => GameDirection.Up,
+            ProtoDirection.Down => GameDirection.Down,
+            ProtoDirection.Left => GameDirection.Left,
+            ProtoDirection.Right => GameDirection.Right,
             _ => null
         };
 

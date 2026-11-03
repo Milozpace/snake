@@ -1,4 +1,5 @@
 using snake.Core;
+using snake.Core.Primitives;
 
 public interface IGameView
 {

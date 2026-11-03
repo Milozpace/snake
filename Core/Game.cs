@@ -2,6 +2,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using snake.Rendering.Skin;
+using snake.Core.Primitives;
 
 namespace snake.Core;
 
@@ -56,14 +57,14 @@ public class Game : IGameView
         Config = config;
         State = GameState.Playing;
 
-        var snake1 = new Snake(config, new(-3, -1), Snake.Direction.Right);
+        var snake1 = new Snake(config, new(-3, -1), Direction.Right);
         var Player1 = new Player(01, snake1, skinConfig.Player1);
         _playerList.Add(Player1);
 
         //将玩家2的初始化放到条件后面
         if (gameMode is not GameMode.SinglePlayer)
         {
-            var snake2 = new Snake(config, new(3, 1), Snake.Direction.Left);
+            var snake2 = new Snake(config, new(3, 1), Direction.Left);
             var Player2 = new Player(02, snake2, skinConfig.Player2);
             _playerList.Add(Player2);
         }
@@ -95,7 +96,7 @@ public class Game : IGameView
     }
 
     //snake 的操作接口
-    public void ToggleDirection(int playerId, Snake.Direction direction)
+    public void ToggleDirection(int playerId, Direction direction)
     {
         Player? player = _playerList.FirstOrDefault(p => p.Id == playerId);
         player?.Snake.TryTurn(direction);
@@ -166,7 +167,7 @@ public class Game : IGameView
                 Player? opponent = _playerList.FirstOrDefault(
                     other => other != player &&
                     other.Snake.Head == snake.Head &&
-                    other.Snake.CurrentDirection == Snake.GetOppositeDirection(snake.CurrentDirection)
+                    other.Snake.CurrentDirection == snake.CurrentDirection.Opposite
                 );
                 opponent?.PlayerDie();
             }
