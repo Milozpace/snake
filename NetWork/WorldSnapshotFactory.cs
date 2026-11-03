@@ -1,6 +1,9 @@
+using ProtoGameState = SnakeNetwork.Protocol.GameState;
+using CoreGameState = snake.Core.GameTypes.GameState;
 using SnakeNetwork.Protocol;
 using snake.Core;
 using snake.Core.Primitives;
+
 
 public static class WorldSnapshotFactory
 {
@@ -32,14 +35,14 @@ public static class WorldSnapshotFactory
 
     }
 
-    private static GameState TransGameState(Game.GameState state)
+    private static ProtoGameState ToProtoGameState(CoreGameState state)
     {
         return state switch
         {
-            Game.GameState.Playing => GameState.Playing,
-            Game.GameState.Paused => GameState.Paused,
-            Game.GameState.GameOver => GameState.GameOver,
-            _ => GameState.Unspecified
+            CoreGameState.Playing => ProtoGameState.Playing,
+            CoreGameState.Paused => ProtoGameState.Paused,
+            CoreGameState.GameOver => ProtoGameState.GameOver,
+            _ => ProtoGameState.Unspecified
         };
     }
 
@@ -75,7 +78,7 @@ public static class WorldSnapshotFactory
         var worldSnapshot = new WorldSnapshot()
         {
             Sequence = sequence,
-            GameState = TransGameState(game.State),
+            GameState = ToProtoGameState(game.State),
             MapSize = TransMap(config)
         };
 

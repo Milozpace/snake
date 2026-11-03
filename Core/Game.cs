@@ -3,18 +3,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using snake.Rendering.Skin;
 using snake.Core.Primitives;
+using snake.Core.GameTypes;
 
 namespace snake.Core;
 
 public class Game : IGameView
 {
     //游戏状态
-    public enum GameState //1.命名 2.应该放去外面作为状态命名空间
-    {
-        Playing,
-        Paused,
-        GameOver
-    }
     public GameState State { get; private set; }
     public GameMode Mode { get; }
     public Player? Winner =>

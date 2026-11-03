@@ -1,5 +1,6 @@
 using snake.Core;
 using snake.Core.Primitives;
+using snake.Core.GameTypes;
 
 public interface IGameView
 {
@@ -8,7 +9,7 @@ public interface IGameView
 
     IReadOnlyList<IPlayerView> Players { get; }
     IReadOnlyList<Point> Foods { get; }
-    Game.GameState GameStatus {get;}
+    GameState GameStatus {get;}
 }
 
 public interface IPlayerView //所以，命名空间！ 以及，后续这个的接口？

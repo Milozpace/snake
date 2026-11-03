@@ -1,5 +1,6 @@
+using ProtoGameState = SnakeNetwork.Protocol.GameState;
+using CoreGameState = snake.Core.GameTypes.GameState;
 using SnakeNetwork.Protocol;
-using snake.Core;
 using snake.Core.Primitives;
 
 public class GuestWorldView : IGameView
@@ -11,7 +12,7 @@ public class GuestWorldView : IGameView
 
     public IReadOnlyList<IPlayerView> Players { get; }
     public IReadOnlyList<Point> Foods { get; }
-    public Game.GameState GameStatus { get; }
+    public CoreGameState GameStatus { get; }
 
     public GuestWorldView(WorldSnapshot snapshot)
     {
@@ -19,7 +20,7 @@ public class GuestWorldView : IGameView
         
         Players = snapshot.Players
             .Select(playerSnapshot => new GuestPlayerView(playerSnapshot))
-            .ToArray();
+            .ToArray();//
 
         Foods = snapshot.Foods
             .Select(p => new Point(p.X, p.Y))
@@ -27,9 +28,9 @@ public class GuestWorldView : IGameView
 
         GameStatus = snapshot.GameState switch
         {
-            GameState.Playing => Game.GameState.Playing,
-            GameState.Paused => Game.GameState.Paused,
-            GameState.GameOver => Game.GameState.GameOver,
+            ProtoGameState.Playing => CoreGameState.Playing,
+            ProtoGameState.Paused => CoreGameState.Paused,
+            ProtoGameState.GameOver => CoreGameState.GameOver,
             _ => throw new ArgumentOutOfRangeException(nameof(snapshot.GameState))
         };
     }

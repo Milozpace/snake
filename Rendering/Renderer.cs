@@ -1,9 +1,8 @@
-using System.ComponentModel.Design;
-using System.Reflection.PortableExecutable;
 using System.Text;
 using snake.Core;
 using snake.Rendering.Skin;
 using snake.Core.Primitives;
+using snake.Core.GameTypes;
 
 namespace snake.Rendering;
 
@@ -587,9 +586,9 @@ public class Renderer
         currentFrame.Clear();
         DrawCanvas(game);
 
-        if (game.GameStatus == Game.GameState.Paused)
+        if (game.GameStatus == GameState.Paused)
             DrawPause();
-        if (game.GameStatus == Game.GameState.GameOver)
+        if (game.GameStatus == GameState.GameOver)
             DrawGameOver(game);
 
         Present(previousFrame, currentFrame);

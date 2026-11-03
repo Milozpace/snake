@@ -1,12 +1,12 @@
 using System.Diagnostics;
-using System.Net;
-using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
 using snake.Core;
 using GameDirection = snake.Core.Primitives.Direction;
+using snake.Core.GameTypes;
 using snake.Rendering;
 using snake.Rendering.Skin;
+using CoreGameState = snake.Core.GameTypes.GameState;
 
 
 public class GameRunner
@@ -66,7 +66,7 @@ public class GameRunner
             game.TogglePause();
         }
 
-        if (game.State != Game.GameState.Paused)
+        if (game.State != CoreGameState.Paused)
         {
             //判断第二套按键的绑定对象
             int secondBindingPlayerId;
@@ -232,14 +232,14 @@ public class GameRunner
 
             var game = new Game(Config, SkinConfig, selectedMode);
             //游戏循环
-            while (game.State != Game.GameState.GameOver && _isRunning)
+            while (game.State != CoreGameState.GameOver && _isRunning)
             {
                 HandlePlayingInput(game);
                 HandleRemoteInput(game);
                 game.UpdateGameIfdue();
 
                 //保证最后一帧能正常渲染与发布
-                if (game.State == Game.GameState.GameOver)
+                if (game.State == CoreGameState.GameOver)
                 {
                     renderer.RenderFrame(game);
                     await PublishFinalSnapshotAsync(game);
