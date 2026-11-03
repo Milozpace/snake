@@ -7,16 +7,14 @@ namespace snake.Core;
 
 public class Snake
 {
+    //蛇的身体
     private readonly List<Point> _body = [];
     public IReadOnlyList<Point> Body => _body;
-
     public Point Head => _body[0];
     private Point previousTailPosition = new(0, 0);
 
-    //Move
-
+    //移动时间管理
     private int _baseMoveIntervalMs;
-
     private int _moveCooldownMs;
 
     private int CurrentMoveIntervalMs =>
@@ -32,16 +30,18 @@ public class Snake
         Left,
         Right
     }
+    //这个不应该写在这里的！ 这个可以独立出来，以及对应的一些实现，而不是作为snake的一部分
+    //（就像之前在gamemode做的那样）
     private Direction _currentDirection;
     public Direction CurrentDirection => _currentDirection;
     private const int MaxBufferedTurns = 2;
     private readonly Queue<Direction> _pendingDIrection = new();
 
-    //Grow
+    //Grow（相关的一些grow配置数字，用来管理移动时的移动速度处理，可以保留）
     private readonly int MinMoveIntervalMs;
     private readonly int MoveIntervalDecreaseMs;
 
-    //Skill
+    //Skill：这里面是skill，但是skill不应该是snake的一个模块吗？
     public enum SkillState
     {
         CoolingDown,
@@ -57,14 +57,17 @@ public class Snake
 
     //共有数据
     private readonly int SimStepMs;
+
     //Constructor
     public Snake(GameConfig config, Point offsetFromCenter, Direction initDirection)
     {
         Point head = new(config.MapWidth / 2 + offsetFromCenter.X, config.MapHeight / 2 + offsetFromCenter.Y);
 
-        Point directionVector = GetDeltaPoint(initDirection);
+        Point directionVector = ToDeltaPoint(initDirection);
         Point body_1 = new(head.X - directionVector.X, head.Y - directionVector.Y);
-        Point body_2 = new(body_1.X - directionVector.X, body_1.Y - directionVector.Y);
+        Point body_2 = new(body_1.X - directionVector.X, body_1.Y - directionVector.Y); 
+        //其实这里的配置就耦合了？
+        //这个初始的写的有点长了（次要问题）
 
         _body = [head, body_1, body_2];
 
@@ -81,8 +84,8 @@ public class Snake
 
     }
 
-    //私有工具方法
-    private Point GetDeltaPoint(Direction direction)
+    //私有工具方法（你看，我自己都知道这是“计算工具”了，所以这些是可以大胆分开的）
+    private static Point ToDeltaPoint(Direction direction)//direction -> 方向向量
     {
         Point directionVector = direction switch
         {
@@ -90,25 +93,30 @@ public class Snake
             Direction.Down => new Point(0, 1),
             Direction.Left => new Point(-1, 0),
             Direction.Right => new Point(1, 0),
-            _ => throw new ArgumentException()
+            _ => throw new ArgumentException()//这里的new语法可以优化（有编辑器提示）
         };
         return directionVector;
     }
-    private Point CalculateNextHead()
+    private Point CalculateNextHead()//调用了上一个函数，けっきょく，完成的任务就是一个事情嘛
     {
-        Point delta = GetDeltaPoint(CurrentDirection);
+        Point delta = ToDeltaPoint(CurrentDirection);
 
-        Point newHead = new Point(
+        Point newHead = new(
             Head.X + delta.X,
             Head.Y + delta.Y
         );
 
         return newHead;
     }
-    private void UpdateSkillState()
+    private void UpdateSkillState() 
+    //更新技能状态（重要！）（但是可以简化？）（属于snake的状态更新之一）
+    //但是这些any更新或许都应该放在一起
+    //然而现在的计时器已经遍野都是
+
     {
         if (CurrentSkillState == SkillState.Ready)
             return;
+
         if (CurrentSkillState == SkillState.CoolingDown)
         {
             _skillCooldownTimerMs = Math.Max(0, _skillCooldownTimerMs - SimStepMs);
@@ -126,7 +134,7 @@ public class Snake
         }
     }
 
-    private void UpdateDirection()
+    private void UpdateDirection()//作为turn的第一步（所以应该放在一起？）
     {
         if (_pendingDIrection.Count() == 0)
             return;
@@ -134,11 +142,11 @@ public class Snake
     }
 
     //主要调用的操作方法
-    public void UpdateSnake()
+    public void UpdateSnake()//什么updateupdate的是不是太模糊了？更新snake是什么，更新什么？
     {
         UpdateSkillState();
     }
-    public static Direction GetOppositeDirection(Direction direction)
+    public static Direction GetOppositeDirection(Direction direction) //这个也是direction的独门方法才对
     {
         return direction switch
         {
@@ -150,23 +158,23 @@ public class Snake
         };
 
     }
-    public bool Move()
+    public bool Move() //这是move的核心方法，
     {
         _moveCooldownMs -= SimStepMs;
         if (_moveCooldownMs > 0)
             return false;
 
-        UpdateDirection();
+        UpdateDirection();//ここだよ
         previousTailPosition = _body[^1];
         Point newHead = CalculateNextHead();
         _body.Insert(0, newHead);
-        _body.RemoveAt(_body.Count - 1);
+        _body.RemoveAt(_body.Count - 1);//掐头去尾
 
         _moveCooldownMs += CurrentMoveIntervalMs;
         return true;
     }
 
-    public void TryTurn(Direction newDirection)
+    public void TryTurn(Direction newDirection)//try也好奇怪，是不是应该叫请求？
     {
         if (_pendingDIrection.Count >= MaxBufferedTurns)
             return;
@@ -189,7 +197,7 @@ public class Snake
         _baseMoveIntervalMs = Math.Max(MinMoveIntervalMs, _baseMoveIntervalMs - MoveIntervalDecreaseMs);
     }
 
-    public bool TryBoost()
+    public bool TryBoost()//命名
     {
         if (CurrentSkillState == SkillState.Ready)
         {
@@ -203,4 +211,6 @@ public class Snake
     }
 }
 
-public record Point(int X, int Y);
+public record Point(int X, int Y); //可以放去别的地方吗？
+
+//extension的使用……

@@ -8,7 +8,7 @@ namespace snake.Core;
 public class Game : IGameView
 {
     //游戏状态
-    public enum GameState
+    public enum GameState //1.命名 2.应该放去外面作为状态命名空间
     {
         Playing,
         Paused,
@@ -22,13 +22,13 @@ public class Game : IGameView
             : null;
 
     //游戏成员
-    private readonly List<Player> _playerList = [];
+    private readonly List<Player> _playerList = [];//这个初始化是什么讲究
     public IReadOnlyList<Player> PlayerList => _playerList;
 
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
 
-    //interface：IGameView
+    //interface：IGameView //所以说，这是配置，不应该作为接口放在这里吧？配置就直接用不就行了？
     int IGameView.MapWidth => Config.MapWidth;
     int IGameView.MapHeight => Config.MapHeight;
     IReadOnlyList<IPlayerView> IGameView.Players => _playerList;
@@ -37,22 +37,16 @@ public class Game : IGameView
 
 
     //计时
+    //这或许是最大的混乱了……一定要有单独的计时模块
     private readonly Stopwatch _clock = Stopwatch.StartNew();
 
     private long _lastUpdateMs = 0;
     private long _accumulatorMs = 0;
     private const int MaxCatchUpSteps = 8;
-
-    public int SimStepMs { get; init; }
-
-    private readonly int FoodSpawnIntervalMs;
-    private int _foodSpawnCooldownMs;
-
+    private int _foodSpawnCooldownMs;//依旧计时工具
 
     //config
     private readonly GameConfig Config;
-    private readonly SkinConfig skinConfig;
-    private readonly int FoodScore;
 
 
     //Constructor
@@ -60,12 +54,6 @@ public class Game : IGameView
     {
         Mode = gameMode;
         Config = config;
-        this.skinConfig = skinConfig;
-        SimStepMs = config.SimStepMs;
-        FoodSpawnIntervalMs = config.FoodSpawnIntervalMs;
-        FoodScore = config.FoodScore;
-        _foodSpawnCooldownMs = FoodSpawnIntervalMs;
-
         State = GameState.Playing;
 
         var snake1 = new Snake(config, new(-3, -1), Snake.Direction.Right);
@@ -82,6 +70,7 @@ public class Game : IGameView
     }
 
     //键盘输入接口
+    //对应input接口，会改变游戏的state和总游戏计时器
     public void TogglePause()
     {
         State = State switch
@@ -105,56 +94,28 @@ public class Game : IGameView
         }
     }
 
+    //snake 的操作接口
     public void ToggleDirection(int playerId, Snake.Direction direction)
     {
         Player? player = _playerList.FirstOrDefault(p => p.Id == playerId);
-        player?.snake.TryTurn(direction);
+        player?.Snake.TryTurn(direction);
     }
     public void ToggleBoost(int playerId)
     {
         Player? player = _playerList.FirstOrDefault(p => p.Id == playerId);
-        player?.snake.TryBoost();
+        player?.Snake.TryBoost();
     }
 
-    //处理游戏-接口
-    public void UpdateGameIfdue()
-    {
-        if (State != GameState.Playing)
-            return;
+    /// <summary>
+    /// 以上都是input接口，影响snake的状态和game的状态
+    /// 其实还是做的不错的
+    /// </summary>
 
-        long now = _clock.ElapsedMilliseconds;
-        _accumulatorMs += now - _lastUpdateMs;
-        _lastUpdateMs = now;
-
-        int step = 0;
-
-        while (_accumulatorMs > SimStepMs && step < MaxCatchUpSteps)
-        {
-            var movers = new List<Player>();
-            foreach (Player player in _playerList)
-            {
-                Snake snake = player.snake;
-                snake.UpdateSnake();
-                bool isMove = snake.Move();
-                if (isMove)
-                    movers.Add(player);
-            }
-            if (movers.Count > 0)
-            {
-                CheckEatFood(movers);
-                CheckCollision(movers);
-            }
-            SpawnFoodIfDue();
-
-            _accumulatorMs -= SimStepMs;
-            step++;
-        }
-    }
 
     //游戏处理
-    private void SpawnFoodIfDue()
+    private void SpawnFoodIfDue() //更新间隔 -> 计算食物位置 -> 生成食物
     {
-        _foodSpawnCooldownMs -= SimStepMs;
+        _foodSpawnCooldownMs -= Config.SimStepMs;
         if (_foodSpawnCooldownMs > 0)
             return;
 
@@ -166,7 +127,7 @@ public class Game : IGameView
                 Point position = new(x, y);
 
                 bool isOccupied = _playerList.Any(
-                    player => player.snake.Body.Contains(position) ||
+                    player => player.Snake.Body.Contains(position) ||
                     _foodList.Contains(position)
                 );
 
@@ -181,14 +142,14 @@ public class Game : IGameView
             _foodList.Add(availablePositions[index]);
         }
 
-        _foodSpawnCooldownMs += FoodSpawnIntervalMs;
+        _foodSpawnCooldownMs += Config.FoodSpawnIntervalMs;
     }
 
-    private void CheckCollision(List<Player> movers)
+    private void CheckCollision(List<Player> movers) //检查碰撞，也就是裁判部分 //还是相当长的
     {
         foreach (Player player in movers)
         {
-            Snake snake = player.snake;
+            Snake snake = player.Snake;
             bool hitWall = (snake.Head.X <= 0 ||
                 snake.Head.X >= Config.MapWidth - 1) ||
                 (snake.Head.Y <= 0 ||
@@ -196,16 +157,16 @@ public class Game : IGameView
 
             bool hitSelf = snake.Body.Skip(1).Contains(snake.Head);
             bool hitOther = _playerList.Any(otherPlayer =>
-                otherPlayer.snake != snake &&
-                otherPlayer.snake.Body.Contains(snake.Head)
+                otherPlayer.Snake != snake &&
+                otherPlayer.Snake.Body.Contains(snake.Head)
             );
             if (hitWall || hitSelf || hitOther)
             {
                 player.PlayerDie();
                 Player? opponent = _playerList.FirstOrDefault(
                     other => other != player &&
-                    other.snake.Head == snake.Head &&
-                    other.snake.CurrentDirection == Snake.GetOppositeDirection(snake.CurrentDirection)
+                    other.Snake.Head == snake.Head &&
+                    other.Snake.CurrentDirection == Snake.GetOppositeDirection(snake.CurrentDirection)
                 );
                 opponent?.PlayerDie();
             }
@@ -215,18 +176,63 @@ public class Game : IGameView
             State = GameState.GameOver;
     }
 
-    private void CheckEatFood(List<Player> movers)
+    private void CheckEatFood(List<Player> movers) //判断snake有没有吃到食物然后调用grow
     {
         foreach (Player player in movers)
         {
-            bool isEatFood = _foodList.Contains(player.snake.Head);
+            bool isEatFood = _foodList.Contains(player.Snake.Head);
             if (!isEatFood)
                 continue;
-            player.snake.Grow();
-            var foodPosition = player.snake.Head;
+            player.Snake.Grow();
+            var foodPosition = player.Snake.Head;
             _foodList.Remove(foodPosition);
-            player.GetPoint(FoodScore);
+            player.AddScore(Config.FoodScore);
+        }
+    }
+
+    //处理游戏-接口
+    public void UpdateGameIfdue()
+    {
+        if (State != GameState.Playing)
+            return;
+
+        //时间计算
+        long now = _clock.ElapsedMilliseconds;
+        _accumulatorMs += now - _lastUpdateMs;
+        _lastUpdateMs = now;
+
+        int step = 0;
+
+        while (_accumulatorMs > Config.SimStepMs && step < MaxCatchUpSteps)
+        {
+            //更新玩家移动
+            var movers = new List<Player>();
+            foreach (Player player in _playerList)
+            {
+                Snake snake = player.Snake;
+                snake.UpdateSnake();
+                bool isMove = snake.Move();
+                if (isMove)
+                    movers.Add(player);
+            }
+            //检测机制（grow与die）
+            if (movers.Count > 0)
+            {
+                CheckEatFood(movers);
+                CheckCollision(movers);
+            }
+            //生成食物
+            SpawnFoodIfDue();
+
+            //更新时间
+            _accumulatorMs -= Config.SimStepMs;
+            step++;
         }
     }
 }
 
+//也就是说，在一个成员中分成多层有时候是没有必要的 —— 把这个角色完成的工作说清楚
+//为什么写了那么长？ 
+// 1.初始化的方式 2.计时模块 
+// 3.裁判机制（死亡判断，主要是，的确是需要做这个事情，但是在这里写的太长了，但其实就是一个计算）
+// 其他其实没什么的

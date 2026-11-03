@@ -10,7 +10,7 @@ public interface IGameView
     Game.GameState GameStatus {get;}
 }
 
-public interface IPlayerView
+public interface IPlayerView //所以，命名空间！ 以及，后续这个的接口？
 {
     int Id { get; }
     int Score {get;}

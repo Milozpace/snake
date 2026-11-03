@@ -4,9 +4,8 @@ using snake.Core;
 
 public static class RemoteInputProcessor
 {
-    //其实似乎和本地键盘输入的职责是一样的呢
-    //guest不允许暂停和退出（游戏）
-    //上下左右玩家id（只允许player2） 加速
+    //Host的一个处理器
+    //收到PlayerInput 之后会调用Game的对应接口（加速、方向移动）
     public static void Apply(Game game, PlayerInput input)
     {
         int id = 2;
