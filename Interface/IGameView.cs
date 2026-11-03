@@ -1,3 +1,5 @@
+using snake.Core;
+
 public interface IGameView
 {
     int MapWidth { get; }

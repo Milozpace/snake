@@ -5,11 +5,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
+using snake.Rendering.Skin;
 
 string baseDir = AppContext.BaseDirectory;
 
 string gamePath = Path.Combine(baseDir, "Config", "configClassic.json");
-string skinPath = Path.Combine(baseDir, "Renderer", "Skin", "skins.json");
+string skinPath = Path.Combine(baseDir, "Rendering", "Skin", "skins.json");
 
 string GameJson = File.ReadAllText(gamePath);
 string SkinsJson = File.ReadAllText(skinPath);

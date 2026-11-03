@@ -3,6 +3,9 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
+using snake.Core;
+using snake.Rendering;
+using snake.Rendering.Skin;
 
 public class GameRunner
 {

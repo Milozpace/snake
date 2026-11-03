@@ -1,3 +1,4 @@
+namespace snake.Rendering.Skin;
 
 public class SkinConfig
 {

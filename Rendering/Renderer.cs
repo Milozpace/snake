@@ -1,6 +1,10 @@
 using System.ComponentModel.Design;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using snake.Core;
+using snake.Rendering.Skin;
+
+namespace snake.Rendering;
 
 public class Renderer
 {

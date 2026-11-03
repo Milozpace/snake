@@ -1,5 +1,6 @@
 using SnakeNetwork.Protocol;
 using ProtoDirection = SnakeNetwork.Protocol.Direction;
+using snake.Core;
 
 public static class RemoteInputProcessor
 {

@@ -1,3 +1,5 @@
+namespace snake.Core;
+
 public enum GameMode
 {
     SinglePlayer,

@@ -4,6 +4,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
+using snake.Rendering;
+using snake.Rendering.Skin;
 
 //shikoto wa:
 //组织guest的接收世界数据 -> 发布input -> 渲染画面 的小型程序

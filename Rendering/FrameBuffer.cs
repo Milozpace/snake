@@ -1,3 +1,5 @@
+namespace snake.Rendering;
+
 public class FrameBuffer
 {
     private readonly Cell[,] cells;

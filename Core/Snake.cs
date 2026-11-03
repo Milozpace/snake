@@ -2,6 +2,9 @@ using System.ComponentModel.Design.Serialization;
 using System.Data;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+
+namespace snake.Core;
+
 public class Snake
 {
     private readonly List<Point> _body = [];

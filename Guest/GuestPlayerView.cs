@@ -1,4 +1,5 @@
 using SnakeNetwork.Protocol;
+using snake.Core;
 
 public class GuestPlayerView : IPlayerView
 {
