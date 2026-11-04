@@ -102,13 +102,14 @@ public class Snake
     }
 
     //主要调用的操作方法
-    public void UpdateSnake()//什么updateupdate的是不是太模糊了？更新snake是什么，更新什么？
+    public bool AdvanceStep()//什么updateupdate的是不是太模糊了？更新snake是什么，更新什么？
     {
         UpdateSkillState();
         _moveRemainingMs -= _config.SimStepMs;
+        return TryMove();
     }
 
-    public bool TryMove()
+    private bool TryMove()
     {
         if (_moveRemainingMs > 0)
             return false;

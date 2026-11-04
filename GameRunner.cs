@@ -66,7 +66,7 @@ public class GameRunner
             game.TogglePause();
         }
 
-        if (game.State != CoreGameState.Paused)
+        if (game.GameState != CoreGameState.Paused)
         {
             //判断第二套按键的绑定对象
             int secondBindingPlayerId;
@@ -232,14 +232,14 @@ public class GameRunner
 
             var game = new Game(Config, selectedMode);
             //游戏循环
-            while (game.State != CoreGameState.GameOver && _isRunning)
+            while (game.GameState != CoreGameState.GameOver && _isRunning)
             {
                 HandlePlayingInput(game);
                 HandleRemoteInput(game);
                 game.UpdateGameIfdue();
 
                 //保证最后一帧能正常渲染与发布
-                if (game.State == CoreGameState.GameOver)
+                if (game.GameState == CoreGameState.GameOver)
                 {
                     renderer.RenderFrame(game);
                     await PublishFinalSnapshotAsync(game);

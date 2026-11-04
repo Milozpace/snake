@@ -78,7 +78,7 @@ public static class WorldSnapshotFactory
         var worldSnapshot = new WorldSnapshot()
         {
             Sequence = sequence,
-            GameState = ToProtoGameState(game.State),
+            GameState = ToProtoGameState(game.GameState),
             MapSize = TransMap(config)
         };
 
