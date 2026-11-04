@@ -212,7 +212,6 @@ public class Game : IGameView
 
     private void SimulateStep()
     {
-        SpawnFoodIfDue();
         var movers = AdvanceSnakes();
 
         if (movers.Count > 0)
@@ -220,6 +219,7 @@ public class Game : IGameView
             ResolveFoodConsumption(movers);
             ResolveCollision(movers);
         }
+        SpawnFoodIfDue();
     }
 
 
@@ -232,7 +232,8 @@ public class Game : IGameView
         if (_accumulatorMs < Config.SimStepMs)
             return;
 
-        for (int step = 0; step < MaxCatchUpSteps; step++)
+        int step = 0;
+        while (step < MaxCatchUpSteps)
         {
             SimulateStep();
             _accumulatorMs -= Config.SimStepMs;
