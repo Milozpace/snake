@@ -1,7 +1,3 @@
-using System.ComponentModel.Design.Serialization;
-using System.Data;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using snake.Core.Primitives;
 
 namespace snake.Core;

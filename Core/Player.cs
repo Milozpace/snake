@@ -1,6 +1,5 @@
 namespace snake.Core;
 
-using snake.Rendering.Skin;
 using snake.Core.Primitives;
 
 public class Player : IPlayerView
@@ -14,14 +13,13 @@ public class Player : IPlayerView
     public int SkillActiveRemainingMs => Snake._skillActiveTimerMs;
     public int SkillCooldownRemainingMs => Snake._skillCooldownTimerMs;
     public Snake Snake { get; } //这条蛇就是在这里吧！ 但是关系是？
-    public SnakeSkin SnakeSkin { get; init; }
+  
     public bool IsAlive { get; private set; } = true;
 
-    public Player(int id, Snake snake, SnakeSkin skin) //这里优化语法（什么use primary constructor？）
+    public Player(int id, Snake snake) //这里优化语法（什么use primary constructor？）
     {
         Id = id;
         Snake = snake;
-        SnakeSkin = skin;
     }
 
     public void AddScore(int score) //这下 命名应该没事了……

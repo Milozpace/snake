@@ -1,7 +1,4 @@
-using System.Data;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using snake.Rendering.Skin;
 using snake.Core.Primitives;
 using snake.Core.GameTypes;
 
@@ -46,21 +43,21 @@ public class Game : IGameView
 
 
     //Constructor
-    public Game(GameConfig config, SkinConfig skinConfig, GameMode gameMode)
+    public Game(GameConfig config, GameMode gameMode)
     {
         Mode = gameMode;
         Config = config;
         State = GameState.Playing;
 
         var snake1 = new Snake(config, new(-3, -1), Direction.Right);
-        var Player1 = new Player(01, snake1, skinConfig.Player1);
+        var Player1 = new Player(01, snake1);
         _playerList.Add(Player1);
 
         //将玩家2的初始化放到条件后面
         if (gameMode is not GameMode.SinglePlayer)
         {
             var snake2 = new Snake(config, new(3, 1), Direction.Left);
-            var Player2 = new Player(02, snake2, skinConfig.Player2);
+            var Player2 = new Player(02, snake2);
             _playerList.Add(Player2);
         }
     }

@@ -15,8 +15,6 @@ public class GuestRunner
     //游戏状态（提供退出）
     private bool _isRunning = true;
     //配置与渲染环境
-    private readonly GameConfig Config;
-    private readonly SkinConfig SkinConfig;
     private readonly Renderer renderer;
 
     //计时器
@@ -38,8 +36,6 @@ public class GuestRunner
         MqttTransport network
     )
     {
-        Config = config;
-        SkinConfig = skinConfig;
         _network = network;
         renderer = new(config, skinConfig);
     }

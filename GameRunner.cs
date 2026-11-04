@@ -230,7 +230,7 @@ public class GameRunner
             if (gameMode is not GameMode selectedMode)
                 return;
 
-            var game = new Game(Config, SkinConfig, selectedMode);
+            var game = new Game(Config, selectedMode);
             //游戏循环
             while (game.State != CoreGameState.GameOver && _isRunning)
             {
