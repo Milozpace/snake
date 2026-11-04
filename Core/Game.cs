@@ -91,7 +91,7 @@ public class Game : IGameView
     public void ToggleDirection(int playerId, Direction direction)
     {
         Player? player = _playerList.FirstOrDefault(p => p.Id == playerId);
-        player?.Snake.TryTurn(direction);
+        player?.Snake.RequestTurn(direction);
     }
     public void ToggleBoost(int playerId)
     {
@@ -204,7 +204,7 @@ public class Game : IGameView
             {
                 Snake snake = player.Snake;
                 snake.UpdateSnake();
-                bool isMove = snake.Move();
+                bool isMove = snake.TryMove();
                 if (isMove)
                     movers.Add(player);
             }

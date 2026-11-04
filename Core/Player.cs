@@ -12,8 +12,8 @@ public class Player(int id, Snake snake) : IPlayerView
     public bool IsAlive { get; private set; } = true;
     IReadOnlyList<Point> IPlayerView.Body => Snake.Body;
     public Snake.SkillState SkillState => Snake.CurrentSkillState;
-    public int SkillActiveRemainingMs => Snake._skillActiveTimerMs;
-    public int SkillCooldownRemainingMs => Snake._skillCooldownTimerMs;
+    public int SkillActiveRemainingMs => Snake.SkillActiveRemainingMs;
+    public int SkillCooldownRemainingMs => Snake.SkillCooldownRemainingMs;
 
     //方法
     public void AddScore(int score) => Score += score;

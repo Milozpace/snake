@@ -65,8 +65,8 @@ public static class WorldSnapshotFactory
             Score = player.Score,
             IsAlive = player.IsAlive,
             SkillStatus = ToProtoSkillStatus(player.Snake.CurrentSkillState),
-            ActiveRemainingMs = player.Snake._skillActiveTimerMs,
-            CooldownRemainingMs = player.Snake._skillCooldownTimerMs
+            ActiveRemainingMs = player.Snake.SkillActiveRemainingMs,
+            CooldownRemainingMs = player.Snake.SkillCooldownRemainingMs
         };
         snapshot.Body.Add(ToGridPoints(player.Snake.Body));
 
