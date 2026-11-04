@@ -155,13 +155,13 @@ public class Game : IGameView
             );
             if (hitWall || hitSelf || hitOther)
             {
-                player.PlayerDie();
+                player.Die();
                 Player? opponent = _playerList.FirstOrDefault(
                     other => other != player &&
                     other.Snake.Head == snake.Head &&
                     other.Snake.CurrentDirection == snake.CurrentDirection.Opposite
                 );
-                opponent?.PlayerDie();
+                opponent?.Die();
             }
         }
         bool isGameOver = _playerList.Any(snakex => !snakex.IsAlive);
