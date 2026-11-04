@@ -7,19 +7,19 @@ using snake.Core.GameTypes;
 using snake.Rendering;
 using snake.Rendering.Skin;
 using CoreGameState = snake.Core.GameTypes.GameState;
+using snake.Input;
 
 
 public class GameRunner
 {
     //Config and Member
     private readonly GameConfig Config;
-    private readonly SkinConfig SkinConfig;
     private readonly Renderer renderer;
 
     //游戏状况
     private bool _isRunning;
 
-    //计时器(这是属于render的！)
+    //计时器
     private readonly Stopwatch _renderClock = Stopwatch.StartNew();
     private readonly Stopwatch? _snapshotClock;
 
@@ -38,7 +38,6 @@ public class GameRunner
         MqttTransport? network = null)
     {
         Config = config;
-        SkinConfig = skinConfig;
         _network = network;
         renderer = new(config, skinConfig);
 
@@ -49,6 +48,21 @@ public class GameRunner
     }
 
     //键盘输入接口 （to game）
+    private static GameMode? SelectGameMode()
+    {
+        while (true)
+        {
+            ConsoleKey key = Console.ReadKey(true).Key;
+            if (key == ConsoleKey.Escape)
+                return null;
+
+            if (key is ConsoleKey.D1 or ConsoleKey.NumPad1)
+                return GameMode.SinglePlayer;
+            if (key is ConsoleKey.D2 or ConsoleKey.NumPad2)
+                return GameMode.LocalVersus;
+        }
+    }
+
     private void HandlePlayingInput(Game game)
     {
         if (!Console.KeyAvailable)
@@ -68,7 +82,7 @@ public class GameRunner
 
         if (game.GameState != CoreGameState.Paused)
         {
-            //判断第二套按键的绑定对象
+            //判断第二套按键的绑定对象（根据创建游戏的gamemode）
             int secondBindingPlayerId;
             if (game.Mode == GameMode.SinglePlayer || _network != null)
                 secondBindingPlayerId = 1;
@@ -76,14 +90,7 @@ public class GameRunner
                 secondBindingPlayerId = 2;
 
             //按键一
-            GameDirection? newDirection1 = key switch
-            {
-                ConsoleKey.UpArrow => GameDirection.Up,
-                ConsoleKey.DownArrow => GameDirection.Down,
-                ConsoleKey.LeftArrow => GameDirection.Left,
-                ConsoleKey.RightArrow => GameDirection.Right,
-                _ => null
-            };
+            GameDirection? newDirection1 = key.ToGameDirection();
             if (newDirection1 is { } direction1)
                 game.ToggleDirection(01, direction1);
 
@@ -92,15 +99,7 @@ public class GameRunner
 
 
             //按键二
-            GameDirection? newDirection2 = key switch
-            {
-                ConsoleKey.W => GameDirection.Up,
-                ConsoleKey.S => GameDirection.Down,
-                ConsoleKey.A => GameDirection.Left,
-                ConsoleKey.D => GameDirection.Right,
-                _ => null
-            };
-
+            GameDirection? newDirection2 = key.ToGameDirection();
             if (newDirection2 is { } direction2)
                 game.ToggleDirection(secondBindingPlayerId, direction2);
 
@@ -120,24 +119,7 @@ public class GameRunner
         }
     }
 
-    private GameMode? ChooseGameMode()
-    {
-        while (true)
-        {
-            ConsoleKey key = Console.ReadKey(true).Key;
-            if (key == ConsoleKey.Escape)
-            {
-                _isRunning = false;
-                return null;
-            }
-            if (key is ConsoleKey.D1 or ConsoleKey.NumPad1)
-                return GameMode.SinglePlayer;
-            if (key is ConsoleKey.D2 or ConsoleKey.NumPad2)
-                return GameMode.LocalVersus;
-        }
-    }
-
-    private bool HandleGameOverInput()
+    private static bool HandleGameOverInput()
     {
         while (true)
         {
@@ -148,6 +130,7 @@ public class GameRunner
                 return false;
         }
     }
+
 
     private async Task PublisherSnapshotAsync(Game game)
     {
@@ -203,13 +186,13 @@ public class GameRunner
             {
                 await _snapshotPublishTask;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _publishError = ex.GetBaseException().Message;
             }
         }
 
-        _sequence ++;
+        _sequence++;
         await PublisherSnapshotAsync(game);
     }
 
@@ -219,19 +202,23 @@ public class GameRunner
     {
         while (_isRunning)
         {
-            //模式选择
+            //环节一：模式选择·创建游戏
             if (_network is null)
                 renderer.RenderMenu();
-            
+
             GameMode? gameMode = _network is null
-                ?ChooseGameMode()
-                :GameMode.OnlineVersus;
+                ? SelectGameMode()
+                : GameMode.OnlineVersus;
 
             if (gameMode is not GameMode selectedMode)
-                return;
+            {
+                _isRunning = false;
+                break;
+            }
 
             var game = new Game(Config, selectedMode);
-            //游戏循环
+
+            //环节二：游戏循环
             while (game.GameState != CoreGameState.GameOver && _isRunning)
             {
                 HandlePlayingInput(game);
@@ -256,14 +243,11 @@ public class GameRunner
                 Thread.Sleep(1);
             }
 
-            //正常结束选择
+            //环节三：游戏结束交互
             if (_isRunning && HandleGameOverInput() == true)
-            {
                 continue;
-            }
             else
-                break;
-
+                _isRunning = false;
         }
     }
 
