@@ -33,6 +33,7 @@ public class Game : IGameView
     //计时
     //这或许是最大的混乱了……一定要有单独的计时模块
     private readonly Stopwatch _clock = Stopwatch.StartNew();
+    private long _now => _clock.ElapsedMilliseconds;
 
     private long _lastUpdateMs = 0;
     private long _accumulatorMs = 0;
@@ -221,15 +222,14 @@ public class Game : IGameView
 
     public void UpdateGameIfdue()
     {
-        long now = _clock.ElapsedMilliseconds;
-        _accumulatorMs += now - _lastUpdateMs;
-        _lastUpdateMs = now;
+        _accumulatorMs += _now - _lastUpdateMs;
+        _lastUpdateMs = _now;
 
         if (_accumulatorMs < Config.SimStepMs)
             return;
 
         int step = 0;
-        while (step < MaxCatchUpSteps)
+        while (_accumulatorMs >= Config.SimStepMs && step < MaxCatchUpSteps)
         {
             SimulateStep();
             _accumulatorMs -= Config.SimStepMs;
