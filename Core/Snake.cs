@@ -57,6 +57,7 @@ public class Snake
         ];
 
         _currentDirection = initDirection;
+        _baseMoveIntervalMs = config.InitMoveIntervalMs;
         _moveRemainingMs = _baseMoveIntervalMs;
     }
 
