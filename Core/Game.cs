@@ -37,7 +37,7 @@ public class Game : IGameView
     private long _lastUpdateMs = 0;
     private long _accumulatorMs = 0;
     private const int MaxCatchUpSteps = 8;
-    private int _foodSpawnCooldownMs;//依旧计时工具
+    private int _foodSpawnCooldownMs;
 
     //config
     private readonly GameConfig Config;
@@ -67,21 +67,17 @@ public class Game : IGameView
     //键盘输入接口
     public void TogglePause()
     {
-        GameState = GameState switch
-        {
-            GameState.Playing => GameState.Paused,
-            GameState.Paused => GameState.Playing,
-            _ => GameState
-        };
         switch (GameState)
         {
             case GameState.Paused:
                 {
+                    GameState = GameState.Paused;
                     _clock.Stop();
                     break;
                 }
             case GameState.Playing:
                 {
+                    GameState = GameState.Playing;
                     _clock.Start();
                     break;
                 }
