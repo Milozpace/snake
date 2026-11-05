@@ -28,7 +28,7 @@ public class GuestRunner(
 
     //net
     private readonly MqttTransport _network = network;
-    private readonly GameInputBroadcaster _gameInputBroadcaster = new(network);
+    private readonly GuestInputBroadcaster _gameInputBroadcaster = new(network);
     private ulong _snapshotSequence;
     private IWorldView? _currentWorldView;
 

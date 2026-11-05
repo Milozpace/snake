@@ -4,7 +4,7 @@ using SnakeNetwork.Protocol;
 using Google.Protobuf;
 using System.Diagnostics;
 
-public class GameInputBroadcaster(MqttTransport network)
+public class GuestInputBroadcaster(MqttTransport network)
 {
     //依赖
     private readonly MqttTransport _network = network;
