@@ -1,13 +1,17 @@
+namespace snake.Application;
+
 using System.Diagnostics;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
 using snake.Core;
-using GameDirection = snake.Core.Primitives.Direction;
+using GameDirection = Core.Primitives.Direction;
 using snake.Core.GameTypes;
 using snake.Rendering;
 using snake.Rendering.Skin;
-using CoreGameState = snake.Core.GameTypes.GameState;
+using CoreGameState = Core.GameTypes.GameState;
 using snake.Input;
+using snake.Network;
+using snake.Config;
 
 
 public class GameRunner
@@ -97,7 +101,6 @@ public class GameRunner
             if (key == ConsoleKey.M)
                 game.ToggleBoost(01);
 
-/////////////////////////键位待修复/////////////////////
             //按键二
             GameDirection? newDirection2 = key.ToDirectionFromWasdKeys();
             if (newDirection2 is { } direction2)
@@ -108,14 +111,14 @@ public class GameRunner
         }
     }
 
-    private void HandleRemoteInput(Game game)
+    private void HandleRemoteInput(Game game) //1.接收input信息 2.解析 3.调用应用
     {
         if (_network is null)
             return;
         while (_network.TryReceive(out byte[]? received) && received is not null)
         {
             PlayerInput input = PlayerInput.Parser.ParseFrom(received);
-            RemoteInputProcessor.Apply(game, input);
+            RemoteInputProcessor.ApplyRemoteInput(game, input);
         }
     }
 
@@ -131,20 +134,20 @@ public class GameRunner
         }
     }
 
-
-    private async Task PublisherSnapshotAsync(Game game)
+    //广播📢
+    private async Task PublisherSnapshotAsync(Game game)//1.获取数据 2.序列化 3.发布 （其实就是游戏的一个发布模块）
     {
         if (_network is null)
             return;
 
-        var worldSnapshot = WorldSnapshotFactory.FromGame(Config, game, _sequence);
+        var worldSnapshot = WorldSnapshotFactory.ToWorldSnapshot(Config, game, _sequence);
+        //proto类的一个方法，根据game和config获取需要传输的数据
         byte[] worldData = worldSnapshot.ToByteArray();
         await _network.PublishAsync("snake/world", worldData);
     }
 
-    private void UpdateSnapshotBroadcast(Game game)
+    private void UpdateSnapshotBroadcast(Game game)//核心处理控制发布任务的调用
     {
-
         if (_snapshotPublishTask is { IsFaulted: true } failedTask)
         {
             _publishError ??=
@@ -166,7 +169,7 @@ public class GameRunner
 
         if (_snapshotClock?.ElapsedMilliseconds >= _intervalMs)
         {
-            if (_snapshotPublishTask is null || _snapshotPublishTask.IsCompleted)
+            if (_snapshotPublishTask is null || _snapshotPublishTask.IsCompleted) //根据对应的任务状态决定要不要发送
             {
                 _sequence++;
                 _snapshotPublishTask = PublisherSnapshotAsync(game);
@@ -175,7 +178,7 @@ public class GameRunner
         }
     }
 
-    private async Task PublishFinalSnapshotAsync(Game game)
+    private async Task PublishFinalSnapshotAsync(Game game) //最后一帧的广播功能
     {
         if (_network is null)
             return;
@@ -218,21 +221,21 @@ public class GameRunner
 
             var game = new Game(Config, selectedMode);
 
-            //环节二：游戏循环
+            //环节二：游戏循环（网络处理、游戏处理、渲染调用）
             while (game.GameState != CoreGameState.GameOver && _isRunning)
             {
                 HandlePlayingInput(game);
-                HandleRemoteInput(game);
+                HandleRemoteInput(game);//网络调用1
                 game.UpdateGameIfdue();
 
                 //保证最后一帧能正常渲染与发布
                 if (game.GameState == CoreGameState.GameOver)
                 {
                     renderer.RenderFrame(game);
-                    await PublishFinalSnapshotAsync(game);
+                    await PublishFinalSnapshotAsync(game); //调用二
                     break;
                 }
-                UpdateSnapshotBroadcast(game);
+                UpdateSnapshotBroadcast(game);//调用三
 
                 if (_renderClock.ElapsedMilliseconds >= 40)
                 {

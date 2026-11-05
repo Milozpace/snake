@@ -2,6 +2,8 @@ using SnakeNetwork.Protocol;
 using snake.Core;
 using snake.Core.Primitives;
 
+namespace snake.Views.Guest;
+
 public class GuestPlayerView : IPlayerView
 {
     private readonly PlayerSnapshot _snapshot;

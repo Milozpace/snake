@@ -1,11 +1,9 @@
-﻿using System;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Google.Protobuf;
-using SnakeNetwork.Protocol;
+using snake.Network;
+using snake.Application;
 using snake.Rendering.Skin;
+using snake.Config;
 
 string baseDir = AppContext.BaseDirectory;
 

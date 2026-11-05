@@ -1,14 +1,15 @@
-using System;
+namespace snake.Application;
+
 using System.Diagnostics;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Google.Protobuf;
 using SnakeNetwork.Protocol;
+using snake.Network;
 using snake.Rendering;
 using snake.Rendering.Skin;
+using snake.Views;
+using snake.Views.Guest;
+using snake.Config;
 
-//shikoto wa:
-//组织guest的接收世界数据 -> 发布input -> 渲染画面 的小型程序
 
 public class GuestRunner
 {
@@ -26,7 +27,7 @@ public class GuestRunner
     private ulong _sequence;
     private readonly Queue<PlayerInput> _pendingInputs = new();
     private Task? _inputPublishTask;
-    private IGameView? _currentView;
+    private IWorldView? _currentView;
 
 
     //Constructor

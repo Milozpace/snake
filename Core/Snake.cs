@@ -1,6 +1,8 @@
-using snake.Core.Primitives;
-
 namespace snake.Core;
+
+using snake.Core.Primitives;
+using snake.Config;
+
 
 public class Snake
 {

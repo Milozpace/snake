@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using snake.Core.Primitives;
 using snake.Core.GameTypes;
+using snake.Views;
+using snake.Config;
 
 namespace snake.Core;
 
-public class Game : IGameView
+public class Game : IWorldView
 {
     //游戏状态
     public GameState GameState { get; private set; }
@@ -23,11 +25,11 @@ public class Game : IGameView
 
     //interface：IGameView 
     // //所以说，这是配置，不应该作为接口放在这里吧？配置就直接用不就行了？
-    int IGameView.MapWidth => Config.MapWidth;
-    int IGameView.MapHeight => Config.MapHeight;
-    IReadOnlyList<IPlayerView> IGameView.Players => _playerList;
-    IReadOnlyList<Point> IGameView.Foods => _foodList;
-    GameState IGameView.GameStatus => GameState;
+    int IWorldView.MapWidth => Config.MapWidth;
+    int IWorldView.MapHeight => Config.MapHeight;
+    IReadOnlyList<IPlayerView> IWorldView.Players => _playerList;
+    IReadOnlyList<Point> IWorldView.Foods => _foodList;
+    GameState IWorldView.GameStatus => GameState;
 
 
     //计时

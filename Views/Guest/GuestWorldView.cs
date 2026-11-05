@@ -3,7 +3,8 @@ using CoreGameState = snake.Core.GameTypes.GameState;
 using SnakeNetwork.Protocol;
 using snake.Core.Primitives;
 
-public class GuestWorldView : IGameView
+namespace snake.Views.Guest;
+public class GuestWorldView : IWorldView
 {
     private readonly WorldSnapshot _snapshot;
 

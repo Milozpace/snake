@@ -3,8 +3,11 @@ using CoreGameState = snake.Core.GameTypes.GameState;
 using SnakeNetwork.Protocol;
 using snake.Core;
 using snake.Core.Primitives;
+using snake.Config;
 
+namespace snake.Network;
 
+//通信模块 - 信息转换
 public static class WorldSnapshotFactory
 {
     //工具函数
@@ -23,7 +26,7 @@ public static class WorldSnapshotFactory
         return result;
     }
 
-    private static SkillStatus ToProtoSkillStatus(Snake.SkillState state)
+    private static SkillStatus ToProtoSkillState(Snake.SkillState state)
     {
         return state switch
         {
@@ -46,7 +49,7 @@ public static class WorldSnapshotFactory
         };
     }
 
-    private static MapSize TransMap(GameConfig config)
+    private static MapSize ToProtoMapsize(GameConfig config)
     {
         return new MapSize
         {
@@ -57,14 +60,14 @@ public static class WorldSnapshotFactory
 
 
     //调用方法
-    private static PlayerSnapshot CopyPlayer(Player player)
+    private static PlayerSnapshot ToPlayerSnapshot(Player player)
     {
         var snapshot = new PlayerSnapshot
         {
             PlayerId = player.Id,
             Score = player.Score,
             IsAlive = player.IsAlive,
-            SkillStatus = ToProtoSkillStatus(player.Snake.CurrentSkillState),
+            SkillStatus = ToProtoSkillState(player.Snake.CurrentSkillState),
             ActiveRemainingMs = player.Snake.SkillActiveRemainingMs,
             CooldownRemainingMs = player.Snake.SkillCooldownRemainingMs
         };
@@ -73,18 +76,18 @@ public static class WorldSnapshotFactory
         return snapshot;
     }
 
-    public static WorldSnapshot FromGame(GameConfig config, Game game, ulong sequence)
+    public static WorldSnapshot ToWorldSnapshot(GameConfig config, Game game, ulong sequence)
     {
         var worldSnapshot = new WorldSnapshot()
         {
             Sequence = sequence,
             GameState = ToProtoGameState(game.GameState),
-            MapSize = TransMap(config)
+            MapSize = ToProtoMapsize(config)
         };
 
         foreach (Player player in game.PlayerList)
         {
-            PlayerSnapshot playerSnapshot = CopyPlayer(player);
+            PlayerSnapshot playerSnapshot = ToPlayerSnapshot(player);
             worldSnapshot.Players.Add(playerSnapshot);
         }
 

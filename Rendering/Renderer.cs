@@ -3,6 +3,8 @@ using snake.Core;
 using snake.Rendering.Skin;
 using snake.Core.Primitives;
 using snake.Core.GameTypes;
+using snake.Views;
+using snake.Config;
 
 namespace snake.Rendering;
 
@@ -106,7 +108,7 @@ public class Renderer
     }
 
     private void DrawSkillMeter(
-        IGameView game,
+        IWorldView game,
         double progress,
         string label,
         ConsoleColor playerColor,
@@ -205,7 +207,7 @@ public class Renderer
         }
     }
 
-    private void DrawPlayerInfo(IGameView game)
+    private void DrawPlayerInfo(IWorldView game)
     {
         int play1RowHeight = game.Players.Count == 1
             ? -1
@@ -227,10 +229,10 @@ public class Renderer
         }
     }
 
-    private static int GetPlayerInfoStartRow(IGameView game) =>
+    private static int GetPlayerInfoStartRow(IWorldView game) =>
         game.Players.Count == 1 ? -1 : -2;
 
-    private void DrawPlayerSkillbars(IGameView game)
+    private void DrawPlayerSkillbars(IWorldView game)
     {
         int startRow = GetPlayerInfoStartRow(game);
 
@@ -240,7 +242,7 @@ public class Renderer
         }
     }
 
-    private void DrawHeader(IGameView game)
+    private void DrawHeader(IWorldView game)
     {
         int titleHeight = game.Players.Count is 2
             ? -3
@@ -250,7 +252,7 @@ public class Renderer
         DrawPlayerInfo(game);
     }
 
-    private void DrawFooter(IGameView game)
+    private void DrawFooter(IWorldView game)
     {
         DrawCanvaText(1, config.MapHeight, ConsoleColor.DarkGreen, "◦ ↑←↓→ + M  BOOST");
         DrawCanvaText(config.MapWidth - 5, config.MapHeight, ConsoleColor.DarkGray, "ESC QUIT");
@@ -260,7 +262,7 @@ public class Renderer
         }
     }
 
-    private void DrawSkillbar(IGameView game, IPlayerView player, int mapRow)
+    private void DrawSkillbar(IWorldView game, IPlayerView player, int mapRow)
     {
         ConsoleColor playerColor = player.Id == 1
             ? ConsoleColor.Green
@@ -353,7 +355,7 @@ public class Renderer
         DrawCenteredText(config.MapHeight / 2, ConsoleColor.Blue, "P A U S E");
     }
 
-    private void DrawGameOver(IGameView game)
+    private void DrawGameOver(IWorldView game)
     {
         bool isVersus = game.Players.Count > 1;
         IPlayerView? winner = isVersus
@@ -487,7 +489,7 @@ public class Renderer
 
 
     ////////////////////////最终整合//////////////////////
-    private void DrawCanvas(IGameView game)
+    private void DrawCanvas(IWorldView game)
     {
         DrawMap();
         DrawHeader(game);
@@ -581,7 +583,7 @@ public class Renderer
     }
 
 
-    public void RenderFrame(IGameView game)
+    public void RenderFrame(IWorldView game)
     {
         currentFrame.Clear();
         DrawCanvas(game);

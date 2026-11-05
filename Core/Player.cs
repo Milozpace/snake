@@ -1,6 +1,7 @@
 namespace snake.Core;
 
 using snake.Core.Primitives;
+using snake.Views;
 
 public class Player(int id, Snake snake) : IPlayerView
 {

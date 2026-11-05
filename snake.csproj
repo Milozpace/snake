@@ -17,11 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protocol/player_input.proto" GrpcServices="None" />
+    <Protobuf Include="Network/Protocol/player_input.proto" GrpcServices="None" />
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protocol/world_snapshot.proto" GrpcServices="None" />
+    <Protobuf Include="Network/Protocol/world_snapshot.proto" GrpcServices="None" />
   </ItemGroup>
 
   <ItemGroup>

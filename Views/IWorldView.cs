@@ -1,8 +1,10 @@
+ namespace snake.Views;
+
 using snake.Core;
 using snake.Core.Primitives;
 using snake.Core.GameTypes;
 
-public interface IGameView
+public interface IWorldView
 {
     int MapWidth { get; }
     int MapHeight { get; }

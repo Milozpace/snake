@@ -1,3 +1,5 @@
+namespace snake.Config;
+
 public class GameConfig
 {
     //Map
