@@ -1,4 +1,5 @@
-using snake.Core.Primitives;
+using ProtoDirection = SnakeNetwork.Protocol.Direction;
+using GameDirection = snake.Core.Primitives.Direction;
 
 namespace snake.Input;
 
@@ -6,22 +7,31 @@ public static class ConsoleKeyExtensions
 {
     extension(ConsoleKey key)
     {
-        public Direction? ToDirectionFromWasdKeys() => key switch
+        public GameDirection? ToGameDirectionFromWasdKeys() => key switch
         {
-            ConsoleKey.W => Direction.Up,
-            ConsoleKey.S => Direction.Down,
-            ConsoleKey.A => Direction.Left,
-            ConsoleKey.D => Direction.Right,
+            ConsoleKey.W => GameDirection.Up,
+            ConsoleKey.S => GameDirection.Down,
+            ConsoleKey.A => GameDirection.Left,
+            ConsoleKey.D => GameDirection.Right,
             _ => null
         };
 
-        public Direction? ToDirectionFromArrowKeys() => key switch
+        public GameDirection? ToGameDirectionFromArrowKeys() => key switch
         {
-            ConsoleKey.UpArrow => Direction.Up,
-            ConsoleKey.DownArrow => Direction.Down,
-            ConsoleKey.LeftArrow => Direction.Left,
-            ConsoleKey.RightArrow => Direction.Right,
+            ConsoleKey.UpArrow => GameDirection.Up,
+            ConsoleKey.DownArrow => GameDirection.Down,
+            ConsoleKey.LeftArrow => GameDirection.Left,
+            ConsoleKey.RightArrow => GameDirection.Right,
             _ => null
+        };
+
+        public ProtoDirection ToProtoDirection() => key switch
+        {
+            ConsoleKey.UpArrow or ConsoleKey.W => ProtoDirection.Up,
+            ConsoleKey.DownArrow or ConsoleKey.S => ProtoDirection.Down,
+            ConsoleKey.LeftArrow or ConsoleKey.A => ProtoDirection.Left,
+            ConsoleKey.RightArrow or ConsoleKey.D => ProtoDirection.Right,
+            _ => ProtoDirection.Unspecified
         };
     }
 }

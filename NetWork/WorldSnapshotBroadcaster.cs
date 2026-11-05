@@ -5,7 +5,7 @@ using snake.Config;
 
 namespace snake.Network;
 
-//对于发布这个模块，ta自己负责内部的状态和管理，gamerunner只需要负责调用两个接口（同步update和最后一帧即可）
+
 public class WorldSnapshotBroadcaster(GameConfig config, MqttTransport network)
 {
     //依赖

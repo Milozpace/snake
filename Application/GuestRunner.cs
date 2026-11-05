@@ -9,37 +9,28 @@ using snake.Rendering.Skin;
 using snake.Views;
 using snake.Views.Guest;
 using snake.Config;
+using snake.Input;
 
-
-public class GuestRunner
-{
-    //游戏状态（提供退出）
-    private bool _isRunning = true;
-    //配置与渲染环境
-    private readonly Renderer renderer;
-
-    //计时器
-    private readonly Stopwatch _renderClock = Stopwatch.StartNew();
-    private readonly Stopwatch _snapshotUpdateClock = Stopwatch.StartNew();
-
-    //net
-    private readonly MqttTransport _network;
-    private ulong _sequence;
-    private readonly Queue<PlayerInput> _pendingInputs = new();
-    private Task? _inputPublishTask;
-    private IWorldView? _currentView;
-
-
-    //Constructor
-    public GuestRunner(
+public class GuestRunner(
         GameConfig config,
         SkinConfig skinConfig,
         MqttTransport network
     )
-    {
-        _network = network;
-        renderer = new(config, skinConfig);
-    }
+{
+    //游戏状态
+    private bool _isRunning = true;
+    //配置与渲染环境
+    private readonly Renderer _renderer= new(config, skinConfig);
+
+    //计时器(处理渲染和接收事件)
+    private readonly Stopwatch _renderClock = Stopwatch.StartNew();
+    private readonly Stopwatch _snapshotUpdateClock = Stopwatch.StartNew();
+
+    //net
+    private readonly MqttTransport _network = network;
+    private readonly GameInputBroadcaster _gameInputBroadcaster = new(network);
+    private ulong _snapshotSequence;
+    private IWorldView? _currentWorldView;
 
 
     private void HandlePlayerInput()
@@ -57,21 +48,13 @@ public class GuestRunner
 
         bool useBoost = false;
         if (key is ConsoleKey.Q or ConsoleKey.M)
-        {
             useBoost = true;
-        }
+        
 
-        Direction inputDirection = key switch
-        {
-            ConsoleKey.UpArrow or ConsoleKey.W => Direction.Up,
-            ConsoleKey.DownArrow or ConsoleKey.S => Direction.Down,
-            ConsoleKey.LeftArrow or ConsoleKey.A => Direction.Left,
-            ConsoleKey.RightArrow or ConsoleKey.D => Direction.Right,
-            _ => Direction.Unspecified
-        };
+        Direction inputDirection = key.ToProtoDirection();
 
         if (inputDirection == Direction.Unspecified && !useBoost)
-            return;//属于优化代码，按了别的按键不会改变游戏状态，那就不发了。和不接受到键盘输入是一个道理
+            return;
 
         var input = new PlayerInput()
         {
@@ -79,32 +62,10 @@ public class GuestRunner
             Direction = inputDirection,
             Boost = useBoost
         };
-        _pendingInputs.Enqueue(input);
+        _gameInputBroadcaster.EnqueueInput(input);
     }
 
-    private void UpdateInputPublishing()
-    {
-        if (_inputPublishTask is { IsCompleted: false })
-            return;
-
-        if (_inputPublishTask is { IsFaulted: true })
-            throw new InvalidOperationException(
-            "玩家输入发布失败",
-            _inputPublishTask.Exception);
-
-        if (_inputPublishTask is { IsCanceled: true })
-            throw new OperationCanceledException(
-                "玩家输入发布被取消");
-
-        if (_pendingInputs.Count == 0)
-            return;
-
-        PlayerInput nextInput = _pendingInputs.Dequeue();
-
-        byte[] _inputPublish = nextInput.ToByteArray();
-        _inputPublishTask = _network.PublishAsync("snake/input", _inputPublish);
-    }
-
+    
 
     private WorldSnapshot? ReceiveSnapshot()
     {
@@ -118,41 +79,42 @@ public class GuestRunner
     {
         while (ReceiveSnapshot() is { } snapshot)
         {
-            if (_currentView is null || snapshot.Sequence > _sequence)
+            if (_currentWorldView is null || snapshot.Sequence > _snapshotSequence)
             {
-                _sequence = snapshot.Sequence;
-                _currentView = new GuestWorldView(snapshot);
+                _snapshotSequence = snapshot.Sequence;
+                _currentWorldView = new GuestWorldView(snapshot);
             }
         }
     }
-
-
 
     //API
     public async Task RunGuestClient()
     {
         while (_isRunning)
         {
+            //1.发布：处理输入发布（两个接口）
             HandlePlayerInput();
-            UpdateInputPublishing();
+            _gameInputBroadcaster.UpdateInputPublishing();
 
+            //2.接收：更新世界状态
             if (_snapshotUpdateClock.ElapsedMilliseconds >= 5)
             {
                 UpdateWorldView();
                 _snapshotUpdateClock.Restart();
             }
 
-            if (_renderClock.ElapsedMilliseconds >= 40 && _currentView is { })
+            //3.渲染
+            if (_renderClock.ElapsedMilliseconds >= 40 && _currentWorldView is { })
             {
-                renderer.RenderFrame(_currentView);
+                _renderer.RenderFrame(_currentWorldView);
                 _renderClock.Restart();
             }
 
             Thread.Sleep(1);
         }
 
-        if (_inputPublishTask is not null)
-            await _inputPublishTask;
+        //等待任务结束
+        await _gameInputBroadcaster.WaitForCurrentPublishAsync();
     }
 
 

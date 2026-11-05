@@ -88,7 +88,7 @@ public class GameRunner
                 secondBindingPlayerId = 2;
 
             //按键一
-            GameDirection? newDirection1 = key.ToDirectionFromArrowKeys();
+            GameDirection? newDirection1 = key.ToGameDirectionFromArrowKeys();
             if (newDirection1 is { } direction1)
                 game.ToggleDirection(01, direction1);
 
@@ -96,7 +96,7 @@ public class GameRunner
                 game.ToggleBoost(01);
 
             //按键二
-            GameDirection? newDirection2 = key.ToDirectionFromWasdKeys();
+            GameDirection? newDirection2 = key.ToGameDirectionFromWasdKeys();
             if (newDirection2 is { } direction2)
                 game.ToggleDirection(secondBindingPlayerId, direction2);
 
