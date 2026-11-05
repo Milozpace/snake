@@ -85,13 +85,13 @@ else if (args.Contains("--proto-host"))
     Console.ReadLine();
 
     GameRunner gameRunner = new(config, skinConfig, host);
-    await RunInGameScreenAsync(gameRunner.RungameAsync);
+    await RunInGameScreenAsync(gameRunner.RunGameAsync);
 }
 //正常游戏
 else
 {
     GameRunner gameRunner = new(config, skinConfig);
-    await RunInGameScreenAsync(gameRunner.RungameAsync);
+    await RunInGameScreenAsync(gameRunner.RunGameAsync);
 }
 
 
