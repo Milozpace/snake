@@ -70,13 +70,13 @@ public class Game : IGameView
     {
         switch (GameState)
         {
-            case GameState.Paused:
+            case GameState.Playing:
                 {
                     GameState = GameState.Paused;
                     _clock.Stop();
                     break;
                 }
-            case GameState.Playing:
+            case GameState.Paused:
                 {
                     GameState = GameState.Playing;
                     _clock.Start();
@@ -233,6 +233,7 @@ public class Game : IGameView
         {
             SimulateStep();
             _accumulatorMs -= Config.SimStepMs;
+            step++;
         }
     }
 }
