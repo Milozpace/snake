@@ -98,13 +98,13 @@ public class Snake
 
     private void ApplyPendingTurn()
     {
-        if (_pendingDirections.Count() == 0)
+        if (_pendingDirections.Count == 0)
             return;
         _currentDirection = _pendingDirections.Dequeue();
     }
 
     //主要调用的操作方法
-    public bool AdvanceStep()//什么updateupdate的是不是太模糊了？更新snake是什么，更新什么？
+    public bool AdvanceStep()
     {
         UpdateSkillState();
         _moveRemainingMs -= _config.SimStepMs;

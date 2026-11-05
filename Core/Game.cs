@@ -17,53 +17,51 @@ public class Game : IWorldView
             : null;
 
     //游戏成员
-    private readonly List<Player> _playerList = [];//这个初始化是什么讲究
+    private readonly List<Player> _playerList = [];
     public IReadOnlyList<Player> PlayerList => _playerList;
 
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
 
     //interface：IGameView 
-    // //所以说，这是配置，不应该作为接口放在这里吧？配置就直接用不就行了？
-    int IWorldView.MapWidth => Config.MapWidth;
-    int IWorldView.MapHeight => Config.MapHeight;
+    int IWorldView.MapWidth => _config.MapWidth;
+    int IWorldView.MapHeight => _config.MapHeight;
     IReadOnlyList<IPlayerView> IWorldView.Players => _playerList;
     IReadOnlyList<Point> IWorldView.Foods => _foodList;
     GameState IWorldView.GameStatus => GameState;
 
 
     //计时
-    //这或许是最大的混乱了……一定要有单独的计时模块
     private readonly Stopwatch _clock = Stopwatch.StartNew();
-    private long _now => _clock.ElapsedMilliseconds;
+    private long Now => _clock.ElapsedMilliseconds;
 
-    private long _lastUpdateMs = 0;
-    private long _accumulatorMs = 0;
+    private long _lastUpdateMs;
+    private long _accumulatorMs;
     private const int MaxCatchUpSteps = 8;
     private int _foodSpawnCooldownMs;
 
     //config
-    private readonly GameConfig Config;
+    private readonly GameConfig _config;
 
 
     //Constructor
     public Game(GameConfig config, GameMode gameMode)
     {
         Mode = gameMode;
-        Config = config;
+        _config = config;
         GameState = GameState.Playing;
         _foodSpawnCooldownMs = config.FoodSpawnIntervalMs;
 
         var snake1 = new Snake(config, new(-3, -1), Direction.Right);
-        var Player1 = new Player(01, snake1);
-        _playerList.Add(Player1);
+        var player1 = new Player(1, snake1);
+        _playerList.Add(player1);
 
         //将玩家2的初始化放到条件后面
         if (gameMode is not GameMode.SinglePlayer)
         {
             var snake2 = new Snake(config, new(3, 1), Direction.Left);
-            var Player2 = new Player(02, snake2);
-            _playerList.Add(Player2);
+            var player2 = new Player(2, snake2);
+            _playerList.Add(player2);
         }
     }
 
@@ -99,14 +97,13 @@ public class Game : IWorldView
     }
 
 
-    //游戏更新
     private List<Point> FindAvailableFoodPotision()
     {
         List<Point> availablePositions = [];
 
-        for (int y = 2; y < Config.MapHeight - 2; y++)
+        for (int y = 2; y < _config.MapHeight - 2; y++)
         {
-            for (int x = 2; x < Config.MapWidth - 2; x++)
+            for (int x = 2; x < _config.MapWidth - 2; x++)
             {
                 Point position = new(x, y);
 
@@ -126,7 +123,7 @@ public class Game : IWorldView
     private void SpawnFoodIfDue()
     {
         //更新时间
-        _foodSpawnCooldownMs -= Config.SimStepMs;
+        _foodSpawnCooldownMs -= _config.SimStepMs;
         if (_foodSpawnCooldownMs > 0)
             return;
 
@@ -138,7 +135,7 @@ public class Game : IWorldView
         }
 
         //时间处理
-        _foodSpawnCooldownMs += Config.FoodSpawnIntervalMs;
+        _foodSpawnCooldownMs += _config.FoodSpawnIntervalMs;
     }
 
     private List<Player> AdvanceSnakes()
@@ -161,9 +158,9 @@ public class Game : IWorldView
         {
             Snake snake = player.Snake;
             bool isHitBounds = (snake.Head.X <= 0 ||
-                snake.Head.X >= Config.MapWidth - 1) ||
+                snake.Head.X >= _config.MapWidth - 1) ||
                 (snake.Head.Y <= 0 ||
-                snake.Head.Y >= Config.MapHeight - 1);
+                snake.Head.Y >= _config.MapHeight - 1);
 
             bool isHitSelf = snake.Body
                 .Skip(1)
@@ -182,12 +179,12 @@ public class Game : IWorldView
                     other.Snake.CurrentDirection == snake.CurrentDirection.Opposite
                 );
                 opponent?.Die();
-                //一个反向头撞头的特殊情况判定（两条蛇都会死亡）
+                //一个蛇头对撞的特殊情况判定（两条蛇都会死亡）
             }
         }
 
         //处理游戏状态
-        bool isGameOver = _playerList.Any(snakex => !snakex.IsAlive);
+        bool isGameOver = _playerList.Any(player => !player.IsAlive);
         if (isGameOver)
             GameState = GameState.GameOver;
     }
@@ -201,7 +198,7 @@ public class Game : IWorldView
             if (hasEatenFood)
             {
                 player.Snake.Grow();
-                player.AddScore(Config.FoodScore);
+                player.AddScore(_config.FoodScore);
 
                 var eatenFoodPosition = player.Snake.Head;
                 _foodList.Remove(eatenFoodPosition);
@@ -209,6 +206,7 @@ public class Game : IWorldView
         }
     }
 
+    //一次游戏step
     private void SimulateStep()
     {
         var movers = AdvanceSnakes();
@@ -222,19 +220,20 @@ public class Game : IWorldView
     }
 
 
+    //向外调用的接口（时间由game内部自己管理）
     public void UpdateGameIfdue()
     {
-        _accumulatorMs += _now - _lastUpdateMs;
-        _lastUpdateMs = _now;
+        _accumulatorMs += Now - _lastUpdateMs;
+        _lastUpdateMs = Now;
 
-        if (_accumulatorMs < Config.SimStepMs)
+        if (_accumulatorMs < _config.SimStepMs)
             return;
 
         int step = 0;
-        while (_accumulatorMs >= Config.SimStepMs && step < MaxCatchUpSteps)
+        while (_accumulatorMs >= _config.SimStepMs && step < MaxCatchUpSteps)
         {
             SimulateStep();
-            _accumulatorMs -= Config.SimStepMs;
+            _accumulatorMs -= _config.SimStepMs;
             step++;
         }
     }
