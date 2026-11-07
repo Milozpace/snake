@@ -1,6 +1,6 @@
 namespace snake.Config;
 
-public class GameConfig
+public class GameConfig//看  R3 record
 {
     //Map
     public int MapWidth { get; init; }

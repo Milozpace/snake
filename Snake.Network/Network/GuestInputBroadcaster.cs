@@ -4,6 +4,7 @@ using SnakeNetwork.Protocol;
 using Google.Protobuf;
 using System.Diagnostics;
 
+// Major Constructor
 public class GuestInputBroadcaster(MqttTransport network)
 {
     //依赖

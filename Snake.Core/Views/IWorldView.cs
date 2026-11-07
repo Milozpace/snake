@@ -14,6 +14,7 @@ public interface IWorldView
     GameState GameStatus {get;}
 }
 
+// 考虑用 record 做解耦 but not inteface
 public interface IPlayerView //所以，命名空间！ 以及，后续这个的接口？
 {
     int Id { get; }

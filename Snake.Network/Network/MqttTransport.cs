@@ -5,7 +5,8 @@ using System.Buffers;
 namespace snake.Network;
 
 //这个是网络模块的哦，是一个client对象
-
+//good
+//
 public class MqttTransport
 {
     private readonly IMqttClient _client;
