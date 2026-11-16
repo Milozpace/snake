@@ -2,6 +2,9 @@
   <Project Path="Snake.App/Snake.App.csproj" />
   <Project Path="Snake.Core.Tests/Snake.Core.Tests.csproj" />
   <Project Path="Snake.Core/Snake.Core.csproj" />
+  <Project Path="Snake.Godot/Snake.Godot.csproj">
+    <BuildType Project="Debug" />
+  </Project>
   <Project Path="Snake.Network/Snake.Network.csproj" />
   <Project Path="Snake.Rendering/Snake.Rendering.csproj" />
 </Solution>
