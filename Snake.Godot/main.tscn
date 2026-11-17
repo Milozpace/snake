@@ -1,0 +1,163 @@
+[gd_scene format=3 uid="uid://cp70frt0d4y60"]
+
+[ext_resource type="Script" uid="uid://bwodksy64ikjo" path="res://GameController.cs" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://c38i4jefrr8s5" path="res://ui_control.gd" id="2_0xm2m"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_03qjk"]
+bg_color = Color(0, 0, 0, 0.6666667)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="Main" type="Node" unique_id=1096013069 node_paths=PackedStringArray("_singleButton", "_versusButton", "_replayButton", "_exitButton")]
+script = ExtResource("1_ig7tw")
+_singleButton = NodePath("UI/Menu/Margin/MenuVBox/ButtonVBox/SingleButton")
+_versusButton = NodePath("UI/Menu/Margin/MenuVBox/ButtonVBox/VersusButton")
+_replayButton = NodePath("UI/Results/Margin/MenuVBox/ButtonVBox/ReplayButton")
+_exitButton = NodePath("UI/Results/Margin/MenuVBox/ButtonVBox/ExitButton")
+
+[node name="UI" type="Control" parent="." unique_id=94613557 node_paths=PackedStringArray("menu", "playing", "results")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_0xm2m")
+menu = NodePath("Menu")
+playing = NodePath("Playing")
+results = NodePath("Results")
+
+[node name="BackGround" type="ColorRect" parent="UI" unique_id=48580788]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.21568628)
+
+[node name="Menu" type="Control" parent="UI" unique_id=622683689]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/Menu" unique_id=1936062786]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 80
+
+[node name="MenuVBox" type="VBoxContainer" parent="UI/Menu/Margin" unique_id=1594040581]
+layout_mode = 2
+theme_override_constants/separation = 55
+alignment = 1
+
+[node name="SnakeTitle" type="Label" parent="UI/Menu/Margin/MenuVBox" unique_id=801087905]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.6846254, 0.8118857, 0.8858784, 1)
+theme_override_font_sizes/font_size = 50
+text = "SNAKE"
+
+[node name="ButtonVBox" type="VBoxContainer" parent="UI/Menu/Margin/MenuVBox" unique_id=564334883]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="SingleButton" type="Button" parent="UI/Menu/Margin/MenuVBox/ButtonVBox" unique_id=1273460408]
+custom_minimum_size = Vector2(300, 80)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 41
+theme_override_styles/normal = SubResource("StyleBoxFlat_03qjk")
+text = "单人模式"
+
+[node name="VersusButton" type="Button" parent="UI/Menu/Margin/MenuVBox/ButtonVBox" unique_id=728616138]
+custom_minimum_size = Vector2(300, 80)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 41
+theme_override_styles/normal = SubResource("StyleBoxFlat_03qjk")
+text = "双人模式"
+
+[node name="Playing" type="Control" parent="UI" unique_id=540626902]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameInfo" type="Label" parent="UI/Playing" unique_id=848899119]
+visible = false
+layout_mode = 0
+offset_left = 37.0
+offset_top = 22.0
+offset_right = 122.0
+offset_bottom = 67.0
+theme_override_font_sizes/font_size = 32
+text = "Score"
+
+[node name="Results" type="Control" parent="UI" unique_id=1882428716]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/Results" unique_id=1581563753]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 80
+
+[node name="MenuVBox" type="VBoxContainer" parent="UI/Results/Margin" unique_id=1391507845]
+layout_mode = 2
+theme_override_constants/separation = 55
+alignment = 1
+
+[node name="Score" type="Label" parent="UI/Results/Margin/MenuVBox" unique_id=1341141837]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.88617176, 0.7294805, 0.8977344, 1)
+theme_override_font_sizes/font_size = 50
+text = "Score"
+
+[node name="ButtonVBox" type="VBoxContainer" parent="UI/Results/Margin/MenuVBox" unique_id=750880848]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="ReplayButton" type="Button" parent="UI/Results/Margin/MenuVBox/ButtonVBox" unique_id=805705700]
+custom_minimum_size = Vector2(300, 80)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 41
+theme_override_styles/normal = SubResource("StyleBoxFlat_03qjk")
+text = "重新开始"
+
+[node name="ExitButton" type="Button" parent="UI/Results/Margin/MenuVBox/ButtonVBox" unique_id=1018380436]
+custom_minimum_size = Vector2(300, 80)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 41
+theme_override_styles/normal = SubResource("StyleBoxFlat_03qjk")
+text = "退出游戏"
