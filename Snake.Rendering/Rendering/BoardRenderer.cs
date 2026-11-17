@@ -1,6 +1,7 @@
 
 namespace snake.Rendering;
 
+using System.Collections.Immutable;
 using snake.Config;
 using snake.Core.Primitives;
 using snake.Rendering.Skin;
@@ -34,7 +35,7 @@ public class BoardRenderer(GameConfig config, SkinConfig skinConfig)
 
     public void DrawFood(
         CanvasPainter canvas,
-        IReadOnlyList<Point> foods)
+        ImmutableArray<Point> foods)
     {
         foreach (Point food in foods)
         {
@@ -47,9 +48,9 @@ public class BoardRenderer(GameConfig config, SkinConfig skinConfig)
 
     public void DrawSnakes(
         CanvasPainter canvas,
-        IReadOnlyList<IPlayerView> players)
+        ImmutableArray<PlayerFrame> players)
     {
-        foreach (IPlayerView player in players)
+        foreach (PlayerFrame player in players)
         {
             DrawSnake(canvas, player);
         }
@@ -57,9 +58,9 @@ public class BoardRenderer(GameConfig config, SkinConfig skinConfig)
 
     private void DrawSnake(
         CanvasPainter canvas,
-        IPlayerView player)
+        PlayerFrame player)
     {
-        if (player.Body.Count == 0)
+        if (player.Body.IsEmpty)
             return;
 
         SnakeSkin skin = player.Id switch

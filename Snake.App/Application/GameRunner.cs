@@ -160,7 +160,7 @@ public class GameRunner
                 //保证最后一帧能正常渲染与发布
                 if (game.GameState == CoreGameState.GameOver)
                 {
-                    _renderer.RenderFrame(game);
+                    _renderer.RenderFrame(game.CaptureFrame());
                     if (_snapshotBroadcaster is not null)
                         await _snapshotBroadcaster.PublishFinalSnapshotAsync(game);
                     break;
@@ -169,7 +169,7 @@ public class GameRunner
 
                 if (_renderClock.ElapsedMilliseconds >= 40)
                 {
-                    _renderer.RenderFrame(game);
+                    _renderer.RenderFrame(game.CaptureFrame());
                     _renderClock.Restart();
                 }
 

@@ -7,7 +7,6 @@ using snake.Network;
 using snake.Rendering;
 using snake.Rendering.Skin;
 using snake.Views;
-using snake.Views.Guest;
 using snake.Config;
 using snake.Input;
 
@@ -30,7 +29,7 @@ public class GuestRunner(
     private readonly MqttTransport _network = network;
     private readonly GuestInputBroadcaster _gameInputBroadcaster = new(network);
     private ulong _snapshotSequence;
-    private IWorldView? _currentWorldView;
+    private WorldFrame? _currentFrame;
 
 
     private void HandlePlayerInput()
@@ -75,14 +74,14 @@ public class GuestRunner(
         return WorldSnapshot.Parser.ParseFrom(received);
     }
 
-    private void UpdateWorldView()
+    private void UpdateWorldFrame()
     {
         while (ReceiveSnapshot() is { } snapshot)
         {
-            if (_currentWorldView is null || snapshot.Sequence > _snapshotSequence)
+            if (_currentFrame is null || snapshot.Sequence > _snapshotSequence)
             {
                 _snapshotSequence = snapshot.Sequence;
-                _currentWorldView = new GuestWorldView(snapshot);
+                _currentFrame = WorldSnapshotFactory.ToWorldFrame(snapshot);
             }
         }
     }
@@ -99,14 +98,14 @@ public class GuestRunner(
             //2.接收：更新世界状态
             if (_snapshotUpdateClock.ElapsedMilliseconds >= 5)
             {
-                UpdateWorldView();
+                UpdateWorldFrame();
                 _snapshotUpdateClock.Restart();
             }
 
             //3.渲染
-            if (_renderClock.ElapsedMilliseconds >= 40 && _currentWorldView is { })
+            if (_renderClock.ElapsedMilliseconds >= 40 && _currentFrame is { } frame)
             {
-                _renderer.RenderFrame(_currentWorldView);
+                _renderer.RenderFrame(frame);
                 _renderClock.Restart();
             }
 

@@ -6,7 +6,7 @@ using snake.Config;
 
 namespace snake.Core;
 
-public class Game : IWorldView
+public class Game
 {
     //游戏状态
     public GameState GameState { get; private set; }
@@ -22,14 +22,6 @@ public class Game : IWorldView
 
     private readonly List<Point> _foodList = [];
     public IReadOnlyList<Point> FoodList => _foodList;
-
-    //interface：IGameView 
-    int IWorldView.MapWidth => _config.MapWidth;
-    int IWorldView.MapHeight => _config.MapHeight;
-    IReadOnlyList<IPlayerView> IWorldView.Players => _playerList;
-    IReadOnlyList<Point> IWorldView.Foods => _foodList;
-    GameState IWorldView.GameStatus => GameState;
-
 
     //计时
     private readonly Stopwatch _clock = Stopwatch.StartNew();
@@ -64,6 +56,11 @@ public class Game : IWorldView
             _playerList.Add(player2);
         }
     }
+
+    //生成并返回数据集合
+    public WorldFrame CaptureFrame()
+        => WorldFrameFactory.CreateWorldFrame(this);
+
 
     //键盘输入接口
     public void TogglePause()

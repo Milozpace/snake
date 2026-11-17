@@ -1,17 +1,13 @@
 namespace snake.Core;
 
-using snake.Core.Primitives;
-using snake.Views;
-
-public class Player(int id, Snake snake) : IPlayerView
+public class Player(int id, Snake snake)
 {
     //snake
     public Snake Snake { get; } = snake;
-    //接口
+    //玩家数据
     public int Id { get; } = id;
     public int Score { get; private set; }
     public bool IsAlive { get; private set; } = true;
-    IReadOnlyList<Point> IPlayerView.Body => Snake.Body;
     public Snake.SkillState SkillState => Snake.CurrentSkillState;
     public int SkillActiveRemainingMs => Snake.SkillActiveRemainingMs;
     public int SkillCooldownRemainingMs => Snake.SkillCooldownRemainingMs;

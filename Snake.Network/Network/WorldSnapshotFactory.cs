@@ -4,12 +4,47 @@ using SnakeNetwork.Protocol;
 using snake.Core;
 using snake.Core.Primitives;
 using snake.Config;
+using snake.Views;
 
 namespace snake.Network;
 
 //通信模块 - 信息转换
 public static class WorldSnapshotFactory
 {
+    public static WorldFrame ToWorldFrame(WorldSnapshot snapshot)
+    {
+        return new WorldFrame(
+            Status: snapshot.GameState switch
+            {
+                ProtoGameState.Playing => CoreGameState.Playing,
+                ProtoGameState.Paused => CoreGameState.Paused,
+                ProtoGameState.GameOver => CoreGameState.GameOver,
+                _ => throw new ArgumentOutOfRangeException(nameof(snapshot.GameState))
+            },
+            Players: [.. snapshot.Players.Select(ToPlayerFrame)],
+            Foods: [.. snapshot.Foods.Select(point => new Point(point.X, point.Y))]
+        );
+    }
+
+    private static PlayerFrame ToPlayerFrame(PlayerSnapshot snapshot)
+    {
+        return new PlayerFrame(
+            Id: snapshot.PlayerId,
+            Score: snapshot.Score,
+            IsAlive: snapshot.IsAlive,
+            Body: [.. snapshot.Body.Select(point => new Point(point.X, point.Y))],
+            SkillState: snapshot.SkillStatus switch
+            {
+                SkillStatus.Ready => Snake.SkillState.Ready,
+                SkillStatus.Active => Snake.SkillState.Active,
+                SkillStatus.CoolingDown => Snake.SkillState.CoolingDown,
+                _ => throw new ArgumentOutOfRangeException(nameof(snapshot.SkillStatus))
+            },
+            SkillActiveRemainingMs: snapshot.ActiveRemainingMs,
+            SkillCooldownRemainingMs: snapshot.CooldownRemainingMs
+        );
+    }
+
     //工具函数
     private static List<GridPoint> ToGridPoints(IReadOnlyList<Point> list)
     {

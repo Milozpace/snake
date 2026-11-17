@@ -12,19 +12,19 @@ public class HudRenderer(GameConfig config)
 
 
     // 玩家信息起始位置
-    private static int GetPlayerInfoStartRow(IWorldView game) =>
-        game.Players.Count == 1 ? -1 : -2;
+    private static int GetPlayerInfoStartRow(WorldFrame frame) =>
+        frame.Players.Length == 1 ? -1 : -2;
 
     // 绘制玩家分数
     private void DrawPlayerInfo(
         CanvasPainter canvas,
-        IWorldView game)
+        WorldFrame frame)
     {
-        int startRow = GetPlayerInfoStartRow(game);
+        int startRow = GetPlayerInfoStartRow(frame);
 
-        for (int i = 0; i < game.Players.Count; i++)
+        for (int i = 0; i < frame.Players.Length; i++)
         {
-            IPlayerView player = game.Players[i];
+            PlayerFrame player = frame.Players[i];
 
             ConsoleColor playerColor = player.Id == 1
                 ? ConsoleColor.Green
@@ -43,16 +43,15 @@ public class HudRenderer(GameConfig config)
     // 绘制所有玩家技能条
     public void DrawPlayerSkillbars(
         CanvasPainter canvas,
-        IWorldView game)
+        WorldFrame frame)
     {
-        int startRow = GetPlayerInfoStartRow(game);
+        int startRow = GetPlayerInfoStartRow(frame);
 
-        for (int i = 0; i < game.Players.Count; i++)
+        for (int i = 0; i < frame.Players.Length; i++)
         {
             DrawSkillbar(
                 canvas,
-                game,
-                game.Players[i],
+                frame.Players[i],
                 startRow + i);
         }
     }
@@ -60,9 +59,9 @@ public class HudRenderer(GameConfig config)
     // 绘制标题和玩家信息
     public void DrawHeader(
         CanvasPainter canvas,
-        IWorldView game)
+        WorldFrame frame)
     {
-        int titleHeight = game.Players.Count == 2
+        int titleHeight = frame.Players.Length == 2
             ? -3
             : -2;
 
@@ -71,13 +70,13 @@ public class HudRenderer(GameConfig config)
             ConsoleColor.DarkGreen,
             "◆  S N A K E  ◆");
 
-        DrawPlayerInfo(canvas, game);
+        DrawPlayerInfo(canvas, frame);
     }
 
     // 绘制操作提示
     public void DrawFooter(
         CanvasPainter canvas,
-        IWorldView game)
+        WorldFrame frame)
     {
         canvas.DrawMapText(
             1,
@@ -91,7 +90,7 @@ public class HudRenderer(GameConfig config)
             ConsoleColor.DarkGray,
             "ESC QUIT");
 
-        if (game.Players.Count > 1)
+        if (frame.Players.Length > 1)
         {
             canvas.DrawMapText(
                 11,
@@ -104,8 +103,7 @@ public class HudRenderer(GameConfig config)
     // 技能条显示信息
     private void DrawSkillbar(
         CanvasPainter canvas,
-        IWorldView game,
-        IPlayerView player,
+        PlayerFrame player,
         int mapRow)
     {
         ConsoleColor playerColor = player.Id == 1
@@ -163,7 +161,6 @@ public class HudRenderer(GameConfig config)
 
         DrawSkillMeter(
             canvas,
-            game,
             progress,
             label,
             playerColor,
@@ -175,7 +172,6 @@ public class HudRenderer(GameConfig config)
     // 技能条绘制
     private void DrawSkillMeter(
         CanvasPainter canvas,
-        IWorldView game,
         double progress,
         string label,
         ConsoleColor playerColor,
@@ -185,7 +181,7 @@ public class HudRenderer(GameConfig config)
     {
         const int labelWidth = 9;
 
-        int mapWidthChars = game.MapWidth * 2;
+        int mapWidthChars = _config.MapWidth * 2;
         int reservedWidth = 7 + 2 + labelWidth;
 
         int maxBarWidth = Math.Max(
@@ -193,7 +189,7 @@ public class HudRenderer(GameConfig config)
             mapWidthChars - reservedWidth);
 
         int barWidth = Math.Clamp(
-            game.MapWidth / 4,
+            _config.MapWidth / 4,
             6,
             12);
 

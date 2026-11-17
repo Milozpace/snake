@@ -21,12 +21,12 @@ public class OverlayRenderer(GameConfig config)
     // 游戏结束界面
     public void DrawGameOver(
         CanvasPainter canvas,
-        IWorldView game)
+        WorldFrame frame)
     {
-        bool isVersus = game.Players.Count > 1;
+        bool isVersus = frame.Players.Length > 1;
 
-        IPlayerView? winner = isVersus
-            ? game.Players.FirstOrDefault(p => p.IsAlive)
+        PlayerFrame? winner = isVersus
+            ? frame.Players.FirstOrDefault(p => p.IsAlive)
             : null;
 
         string title = !isVersus
@@ -116,9 +116,9 @@ public class OverlayRenderer(GameConfig config)
         if (isVersus)
         {
             // 双人结算
-            for (int i = 0; i < game.Players.Count; i++)
+            for (int i = 0; i < frame.Players.Length; i++)
             {
-                IPlayerView player = game.Players[i];
+                PlayerFrame player = frame.Players[i];
 
                 ConsoleColor playerColor = player.Id == 1
                     ? ConsoleColor.Green
@@ -132,7 +132,7 @@ public class OverlayRenderer(GameConfig config)
                     (ConsoleColor.DarkGray, "SCORE "),
                     (ConsoleColor.White, $"{player.Score:D3}"),
                     (ConsoleColor.DarkGray, "   LEN "),
-                    (ConsoleColor.White, $"{player.Body.Count:D2}"));
+                    (ConsoleColor.White, $"{player.Body.Length:D2}"));
             }
 
             canvas.DrawCenteredScreenRichText(
@@ -148,7 +148,7 @@ public class OverlayRenderer(GameConfig config)
         else
         {
             // 单人结算
-            IPlayerView player = game.Players[0];
+            PlayerFrame player = frame.Players[0];
 
             canvas.DrawCenteredScreenRichText(
                 panelX,
@@ -157,7 +157,7 @@ public class OverlayRenderer(GameConfig config)
                 (ConsoleColor.DarkGray, "SCORE "),
                 (ConsoleColor.White, $"{player.Score:D3}"),
                 (ConsoleColor.DarkGray, "   LEN "),
-                (ConsoleColor.White, $"{player.Body.Count:D2}"));
+                (ConsoleColor.White, $"{player.Body.Length:D2}"));
 
             canvas.DrawCenteredScreenRichText(
                 panelX,

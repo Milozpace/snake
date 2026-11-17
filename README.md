@@ -7,9 +7,9 @@
 
 
 ### Rendering
-游戏渲染模块，负责将游戏视图数据转换为终端画面。接口契约为`IWorldView`
+游戏渲染模块，负责将 `WorldFrame` 快照转换为终端画面。
 
-渲染模块通过 `IWorldView` (包含`IPlayerView` ) 获取所需数据(不直接依赖具体的 Game、Player 对象)
+渲染模块通过 `WorldFrame`（包含 `PlayerFrame`）获取所需数据，不直接依赖具体的 Game、Player 对象。
 
 本地游戏与 Guest 接收到的游戏数据可以共用同一套渲染逻辑。
 
@@ -33,7 +33,7 @@
 - **Protocol**：使用 Protocol Buffers 定义网络通信的数据结构，例如 PlayerInput 和 WorldSnapshot。
 
 **Gamerunner模块：**
-- **WorldSnapshotFactory**：负责将本地游戏状态一键转换为 WorldSnapshot 数据对象,为发布提供元数据
+- **WorldSnapshotFactory**：负责将本地游戏状态转换为 WorldSnapshot，并将接收到的 WorldSnapshot 解码为 WorldFrame。
 - **WorldSnapshotBroadcaster**：负责管理 Host 端游戏状态的定时广播任务
 - **RemoteInputProcessor**：负责解析远程玩家的输入信息，并将其转换为对应的游戏操作。
 
@@ -52,7 +52,7 @@
 	- 持续调用 `Game.UpdateGameIfdue()`，推进游戏模拟。
 	- **处理本地键盘输入**，例如蛇的转向、加速、游戏暂停与退出。
 - **渲染模块**：
-	- 按照渲染频率调用 `Renderer.RenderFrame()`，更新终端画面。
+	- 按照渲染频率调用 `Renderer.RenderFrame(game.CaptureFrame())`，更新终端画面。
 - **通信模块**（Host 模式）：
 	- 接收并处理 Guest 发送的远程输入信息（Topic：`snake/input`）。
 	- 管理游戏状态的广播任务，将 WorldSnapshot 发布至网络（Topic：`snake/world`）。
@@ -65,23 +65,22 @@
 - **通信模块**：
 	- 接收：
 		- 接收 Host 发布的 `WorldSnapshot`（Topic：`snake/world`）
-		- 转换为 `GuestWorldView`，为Renderer提供数据
+		- 通过 `WorldSnapshotFactory.ToWorldFrame()` 转换为快照，为 Renderer 提供数据。
 	- 发布：
 		- 通过 `GuestInputBroadcaster` 管理输入队列与异步发布任务。
 		- 将玩家输入发布至 MQTT（Topic：`snake/input`）
 - **渲染模块**：
-	- 使用 `GuestWorldView`（满足接口契约）提供的数据完成画面绘制。（调用方法和GameRunner一样）
+	- 使用 `WorldFrame` 完成画面绘制，与 GameRunner 共用同一个渲染入口。
 
 ---
 ### 其他模块
 #### View
-提供游戏视图的数据接口，作为 Core、Application 与 Rendering 之间的抽象层。
+提供 Core、Application 与 Rendering 共用的数据 record。
 
-- **IWorldView**：定义游戏世界的视图接口，约定地图尺寸、玩家、食物和游戏状态等数据。（Renderer的接口契约）
-- **IPlayerView**：定义玩家视图接口，约定玩家身份、分数、身体坐标和技能状态等数据。  
-- **GuestWorldView / GuestPlayerView**：将 Guest 接收到的网络数据转换为对应的视图对象，实现上述接口，使 Guest 端能够复用 Rendering 模块。  
-
-其中，Game 和 Player 分别提供本地游戏的视图接口实现。
+- **WorldFrame**：保存某个时刻的游戏状态、玩家快照和食物坐标。
+- **PlayerFrame**：保存玩家身份、分数、身体坐标和技能状态，集合使用 ImmutableArray。
+- **WorldDefinition**：描述地图尺寸、技能总时长等一局内固定的显示参数。
+- **WorldFrameFactory**：读取具体的 Game 和 Player，创建独立快照；本地通过 `Game.CaptureFrame()` 获取。
 
 #### Input
 提供键盘输入`ConsoleKey`的扩展方法。

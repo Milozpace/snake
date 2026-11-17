@@ -82,7 +82,7 @@ public class Renderer
     }
 
     // 游戏画面
-    public void RenderFrame(IWorldView game)
+    public void RenderFrame(WorldFrame frame)
     {
         CanvasPainter canvas = BeginFrame();
 
@@ -90,20 +90,20 @@ public class Renderer
         _boardRenderer.DrawMap(canvas);
 
         // 游戏信息
-        _hudRenderer.DrawHeader(canvas, game);
-        _hudRenderer.DrawPlayerSkillbars(canvas, game);
-        _hudRenderer.DrawFooter(canvas, game);
+        _hudRenderer.DrawHeader(canvas, frame);
+        _hudRenderer.DrawPlayerSkillbars(canvas, frame);
+        _hudRenderer.DrawFooter(canvas, frame);
 
         // 游戏实体
-        _boardRenderer.DrawFood(canvas, game.Foods);
-        _boardRenderer.DrawSnakes(canvas, game.Players);
+        _boardRenderer.DrawFood(canvas, frame.Foods);
+        _boardRenderer.DrawSnakes(canvas, frame.Players);
 
         // 覆盖界面
-        if (game.GameStatus == GameState.Paused)
+        if (frame.Status == GameState.Paused)
             _overlayRenderer.DrawPause(canvas);
 
-        if (game.GameStatus == GameState.GameOver)
-            _overlayRenderer.DrawGameOver(canvas, game);
+        if (frame.Status == GameState.GameOver)
+            _overlayRenderer.DrawGameOver(canvas, frame);
 
         PresentFrame();
     }
