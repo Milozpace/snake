@@ -1,8 +1,7 @@
-﻿using GameSnake = snake.Core.Snake;
-using snake.Config;
-using snake.Core;
-using snake.Core.Primitives;
-using snake.Core.GameTypes;
+﻿using GameSnake = Snake.Core.Snake;
+using Snake.Config;
+using Snake.Core.Primitives;
+using Snake.Core.GameTypes;
 
 namespace Snake.Core.Tests;
 

@@ -1,4 +1,4 @@
-namespace snake.Config;
+namespace Snake.Config;
 
 public class GameConfig//看  R3 record
 {

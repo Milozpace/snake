@@ -3,9 +3,9 @@
 using System;
 using Godot;
 using R3;
-using snake.Config;
-using snake.Core;
-using snake.Core.GameTypes;
+using Snake.Config;
+using Snake.Core;
+using Snake.Core.GameTypes;
 
 namespace Snake.Godot;
 

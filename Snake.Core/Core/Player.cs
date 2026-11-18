@@ -1,4 +1,4 @@
-namespace snake.Core;
+namespace Snake.Core;
 
 public class Player(int id, Snake snake)
 {

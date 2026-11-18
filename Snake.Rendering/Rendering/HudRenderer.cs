@@ -1,9 +1,9 @@
 
-namespace snake.Rendering;
+namespace Snake.Rendering;
 
-using snake.Config;
-using snake.Core;
-using snake.Views;
+using Snake.Config;
+using GameSnake = Snake.Core.Snake;
+using Snake.Views;
 
 public class HudRenderer(GameConfig config)
 {
@@ -119,14 +119,14 @@ public class HudRenderer(GameConfig config)
 
         switch (player.SkillState)
         {
-            case Snake.SkillState.Ready:
+            case GameSnake.SkillState.Ready:
                 progress = 1.0;
                 label = $"READY [{key}]";
                 fillColor = playerColor;
                 textColor = playerColor;
                 break;
 
-            case Snake.SkillState.Active:
+            case GameSnake.SkillState.Active:
                 progress =
                     (double)player.SkillActiveRemainingMs /
                     _config.SkillActiveMs;
@@ -139,7 +139,7 @@ public class HudRenderer(GameConfig config)
                 textColor = ConsoleColor.Yellow;
                 break;
 
-            case Snake.SkillState.CoolingDown:
+            case GameSnake.SkillState.CoolingDown:
                 progress =
                     1.0 -
                     (double)player.SkillCooldownRemainingMs /

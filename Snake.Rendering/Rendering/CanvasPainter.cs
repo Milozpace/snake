@@ -1,7 +1,7 @@
 
-namespace snake.Rendering;
+namespace Snake.Rendering;
 
-using snake.Config;
+using Snake.Config;
 
 public class CanvasPainter(FrameBuffer frame, GameConfig config)
 {

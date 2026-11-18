@@ -1,4 +1,4 @@
-namespace snake.Views;
+namespace Snake.Views;
 
 public sealed record WorldDefinition(
     int MapWidth,

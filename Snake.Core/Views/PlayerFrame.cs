@@ -1,15 +1,15 @@
 using System.Collections.Immutable;
-using snake.Core;
-using snake.Core.Primitives;
+using GameSnake = Snake.Core.Snake;
+using Snake.Core.Primitives;
 
-namespace snake.Views;
+namespace Snake.Views;
 
 public sealed record PlayerFrame(
     int Id,
     int Score,
     bool IsAlive,
     ImmutableArray<Point> Body,
-    Snake.SkillState SkillState,
+    GameSnake.SkillState SkillState,
     int SkillActiveRemainingMs,
     int SkillCooldownRemainingMs
 );

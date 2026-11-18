@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using snake.Core.Primitives;
-using snake.Core.GameTypes;
-using snake.Views;
-using snake.Config;
+using Snake.Core.Primitives;
+using Snake.Core.GameTypes;
+using Snake.Views;
+using Snake.Config;
 
-namespace snake.Core;
+namespace Snake.Core;
 
 public class Game
 {

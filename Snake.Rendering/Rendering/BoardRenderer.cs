@@ -1,11 +1,11 @@
 
-namespace snake.Rendering;
+namespace Snake.Rendering;
 
 using System.Collections.Immutable;
-using snake.Config;
-using snake.Core.Primitives;
-using snake.Rendering.Skin;
-using snake.Views;
+using Snake.Config;
+using Snake.Core.Primitives;
+using Snake.Rendering.Skin;
+using Snake.Views;
 
 public class BoardRenderer(GameConfig config, SkinConfig skinConfig)
 {

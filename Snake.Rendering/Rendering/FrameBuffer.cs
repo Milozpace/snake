@@ -1,4 +1,4 @@
-namespace snake.Rendering;
+namespace Snake.Rendering;
 
 public class FrameBuffer
 {

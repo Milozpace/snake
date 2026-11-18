@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
-using snake.Core.GameTypes;
-using snake.Core.Primitives;
+using Snake.Core.GameTypes;
+using Snake.Core.Primitives;
 
-namespace snake.Views;
+namespace Snake.Views;
 
 public sealed record WorldFrame(
     GameState Status,

@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using snake.Core;
+using Snake.Core;
 using Google.Protobuf;
-using snake.Config;
+using Snake.Config;
 
-namespace snake.Network;
+namespace Snake.Network;
 
 
 public class WorldSnapshotBroadcaster(GameConfig config, MqttTransport network)

@@ -1,7 +1,7 @@
-namespace snake.Core;
+namespace Snake.Core;
 
-using snake.Core.Primitives;
-using snake.Config;
+using global::Snake.Core.Primitives;
+using global::Snake.Config;
 
 
 public class Snake

@@ -1,9 +1,8 @@
 
-namespace snake.Rendering;
+namespace Snake.Rendering;
 
-using snake.Config;
-using snake.Core.GameTypes;
-using snake.Views;
+using Snake.Config;
+using Snake.Views;
 
 public class OverlayRenderer(GameConfig config)
 {

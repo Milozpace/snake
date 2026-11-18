@@ -1,5 +1,5 @@
 
-namespace snake.Rendering;
+namespace Snake.Rendering;
 
 using System.Text;
 

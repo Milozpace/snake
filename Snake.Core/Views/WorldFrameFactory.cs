@@ -1,9 +1,6 @@
-using System.Collections.Immutable;
-using snake.Core;
-using snake.Core.GameTypes;
-using snake.Core.Primitives;
+using Snake.Core;
 
-namespace snake.Views;
+namespace Snake.Views;
 
 public static class WorldFrameFactory
 {

@@ -2,7 +2,7 @@ using MQTTnet;
 using System.Collections.Concurrent;
 using System.Buffers;
 
-namespace snake.Network;
+namespace Snake.Network;
 
 //这个是网络模块的哦，是一个client对象
 //good

@@ -1,10 +1,10 @@
 
-namespace snake.Rendering;
+namespace Snake.Rendering;
 
-using snake.Config;
-using snake.Core.GameTypes;
-using snake.Rendering.Skin;
-using snake.Views;
+using Snake.Config;
+using Snake.Core.GameTypes;
+using Snake.Rendering.Skin;
+using Snake.Views;
 
 public class Renderer
 {

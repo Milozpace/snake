@@ -1,4 +1,4 @@
-namespace snake.Network;
+namespace Snake.Network;
 
 using SnakeNetwork.Protocol;
 using Google.Protobuf;

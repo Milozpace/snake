@@ -1,4 +1,4 @@
-namespace snake.Core.GameTypes;
+namespace Snake.Core.GameTypes;
 
 public enum GameMode
 {

@@ -1,12 +1,13 @@
 using ProtoGameState = SnakeNetwork.Protocol.GameState;
-using CoreGameState = snake.Core.GameTypes.GameState;
+using CoreGameState = Snake.Core.GameTypes.GameState;
 using SnakeNetwork.Protocol;
-using snake.Core;
-using snake.Core.Primitives;
-using snake.Config;
-using snake.Views;
+using Snake.Core;
+using GameSnake = Snake.Core.Snake;
+using Snake.Core.Primitives;
+using Snake.Config;
+using Snake.Views;
 
-namespace snake.Network;
+namespace Snake.Network;
 
 //通信模块 - 信息转换
 public static class WorldSnapshotFactory
@@ -35,9 +36,9 @@ public static class WorldSnapshotFactory
             Body: [.. snapshot.Body.Select(point => new Point(point.X, point.Y))],
             SkillState: snapshot.SkillStatus switch
             {
-                SkillStatus.Ready => Snake.SkillState.Ready,
-                SkillStatus.Active => Snake.SkillState.Active,
-                SkillStatus.CoolingDown => Snake.SkillState.CoolingDown,
+                SkillStatus.Ready => GameSnake.SkillState.Ready,
+                SkillStatus.Active => GameSnake.SkillState.Active,
+                SkillStatus.CoolingDown => GameSnake.SkillState.CoolingDown,
                 _ => throw new ArgumentOutOfRangeException(nameof(snapshot.SkillStatus))
             },
             SkillActiveRemainingMs: snapshot.ActiveRemainingMs,
@@ -61,13 +62,13 @@ public static class WorldSnapshotFactory
         return result;
     }
 
-    private static SkillStatus ToProtoSkillState(Snake.SkillState state)
+    private static SkillStatus ToProtoSkillState(GameSnake.SkillState state)
     {
         return state switch
         {
-            Snake.SkillState.Active => SkillStatus.Active,
-            Snake.SkillState.Ready => SkillStatus.Ready,
-            Snake.SkillState.CoolingDown => SkillStatus.CoolingDown,
+            GameSnake.SkillState.Active => SkillStatus.Active,
+            GameSnake.SkillState.Ready => SkillStatus.Ready,
+            GameSnake.SkillState.CoolingDown => SkillStatus.CoolingDown,
             _ => SkillStatus.Unspecified
         };
 

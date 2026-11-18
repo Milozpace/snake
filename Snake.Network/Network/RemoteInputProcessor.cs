@@ -1,9 +1,9 @@
 using SnakeNetwork.Protocol;
 using ProtoDirection = SnakeNetwork.Protocol.Direction;
-using snake.Core;
-using GameDirection = snake.Core.Primitives.Direction;
+using Snake.Core;
+using GameDirection = Snake.Core.Primitives.Direction;
 
-namespace snake.Network;
+namespace Snake.Network;
 //网络模块 - 远程键盘操作接口（转化 + 调用）
 
 public static class RemoteInputProcessor

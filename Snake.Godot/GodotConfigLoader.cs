@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 using Godot;
-using snake.Config;
+using Snake.Config;
 
 namespace Snake.Godot;
 
