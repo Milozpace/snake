@@ -11,7 +11,7 @@ using snake.Input;
 using snake.Network;
 using snake.Config;
 using R3;
-
+using snake.Views;
 
 public class GameRunner
 {
@@ -19,15 +19,14 @@ public class GameRunner
     private readonly GameConfig _config;
     private readonly Renderer _renderer;
 
-    //计时器
-    private readonly Stopwatch _renderClock = Stopwatch.StartNew();
-
     //net与发布模块
     private readonly MqttTransport? _network;
     private readonly WorldSnapshotBroadcaster? _snapshotBroadcaster;
 
-    //交互事件流
+    //事件流
     private readonly Subject<ConsoleKey> _keyStream = new();
+    private readonly Subject<byte[]>? _remoteInputStream;
+    private readonly Subject<WorldFrame> _worldFrameStream = new();
 
 
     //Constructor
@@ -40,12 +39,18 @@ public class GameRunner
         _network = network;
         _renderer = new(config, skinConfig);
 
-        if (_network is not null)
+        if (_network is { })
+        {
             _snapshotBroadcaster = new(config, _network);
+            _remoteInputStream = new();
+        }
     }
 
-    private void RegisterInputSubscriptions(Game game, int wasdPlayerId)
+    //注册订阅方法
+    private CompositeDisposable RegisterInputSubscriptions(Game game, int wasdPlayerId)
     {
+        var subscriptions = new CompositeDisposable();
+
         var pauseSubscription = _keyStream
             .Where(key => key is ConsoleKey.Spacebar)
             .Subscribe(_ => game.TogglePause());
@@ -69,8 +74,35 @@ public class GameRunner
         var wasdBoostSubscription = _keyStream
             .Where(key => key is ConsoleKey.Q)
             .Subscribe(_ => game.ToggleBoost(wasdPlayerId));
+
+        subscriptions.Add(pauseSubscription);
+        subscriptions.Add(arrowTurnSubscription);
+        subscriptions.Add(wasdTurnSubscription);
+        subscriptions.Add(arrowBoostSubscription);
+        subscriptions.Add(wasdBoostSubscription);
+
+        return subscriptions;
     }
 
+    private IDisposable? RegisterRemoteInputSubscriptions(Game game)
+    {
+        if (_remoteInputStream is null)
+            return null;
+
+        return _remoteInputStream
+            .Select(received => PlayerInput.Parser.ParseFrom(received))
+            .Subscribe(input =>
+                RemoteInputProcessor.ApplyRemoteInput(game, input));
+    }
+
+    private IDisposable RegisterWorldFrameSubscriptions(Action<WorldFrame> renderFrame)
+    {
+        return _worldFrameStream
+            .DistinctUntilChanged()
+            .Subscribe(renderFrame);
+    }
+
+    //接收并更新信息流
     private bool HandlePlayingInput()
     {
         if (!Console.KeyAvailable)
@@ -90,10 +122,10 @@ public class GameRunner
             return;
         while (_network.TryReceive(out byte[]? received) && received is not null)
         {
-            PlayerInput input = PlayerInput.Parser.ParseFrom(received);
-            RemoteInputProcessor.ApplyRemoteInput(game, input);
+            _remoteInputStream?.OnNext(received);
         }
     }
+
 
     private static GameMode? SelectGameMode()
     {
@@ -150,12 +182,14 @@ public class GameRunner
             if (gameMode is not GameMode selectedMode)
                 return;
 
-
             var game = new Game(_config, selectedMode);
             int wasdPlayerId = BindingSecondPlayerId(selectedMode);
-            RegisterInputSubscriptions(game, wasdPlayerId);
 
-            //环节二：游戏循环（网络处理、游戏处理、渲染调用）
+            using var inputSubscriptions = RegisterInputSubscriptions(game, wasdPlayerId);
+            using var renderingSubscription = RegisterWorldFrameSubscriptions(_renderer.RenderFrame);
+            using var remoteInputSubscription = RegisterRemoteInputSubscriptions(game);
+
+            //环节二：游戏循环（接受输入、游戏更新、更新画面）
             while (game.GameState != CoreGameState.GameOver)
             {
                 if (!HandlePlayingInput())
@@ -163,6 +197,7 @@ public class GameRunner
 
                 HandleRemoteInput(game);
                 game.UpdateGameIfdue();
+                _worldFrameStream.OnNext(game.CaptureFrame());
 
                 //保证最后一帧能正常渲染与发布
                 if (game.GameState == CoreGameState.GameOver)
@@ -173,12 +208,6 @@ public class GameRunner
                     break;
                 }
                 _snapshotBroadcaster?.UpdateSnapshotBroadcast(game);
-
-                if (_renderClock.ElapsedMilliseconds >= 40)
-                {
-                    _renderer.RenderFrame(game.CaptureFrame());
-                    _renderClock.Restart();
-                }
 
                 Thread.Sleep(1);
             }
