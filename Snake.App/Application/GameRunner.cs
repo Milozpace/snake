@@ -19,8 +19,7 @@ public class GameRunner
     private readonly GameConfig _config;
     private readonly Renderer _renderer;
 
-    //游戏状况
-    private bool _isRunning;
+
 
     //计时器
     private readonly Stopwatch _renderClock = Stopwatch.StartNew();
@@ -42,7 +41,6 @@ public class GameRunner
         if (_network is not null)
             _snapshotBroadcaster = new(config, _network);
 
-        _isRunning = true;
     }
 
     //键盘输入接口 （to game）
@@ -61,17 +59,16 @@ public class GameRunner
         }
     }
 
-    private void HandlePlayingInput(Game game)
+    private bool HandlePlayingInput(Game game)
     {
         if (!Console.KeyAvailable)
-            return;
+            return true;
 
         ConsoleKey key = Console.ReadKey(true).Key;
 
         if (key == ConsoleKey.Escape)
         {
-            _isRunning = false;
-            return;
+            return false;
         }
         else if (key == ConsoleKey.Spacebar)
         {
@@ -103,6 +100,7 @@ public class GameRunner
             if (key == ConsoleKey.Q)
                 game.ToggleBoost(secondBindingPlayerId);
         }
+        return true;
     }
 
     private void HandleRemoteInput(Game game) //1.接收input信息 2.解析 3.调用应用
@@ -129,10 +127,11 @@ public class GameRunner
     }
 
 
+    
     //运行游戏
     public async Task RunGameAsync()
     {
-        while (_isRunning)
+        while (true)
         {
             //环节一：模式选择·创建游戏
             if (_network is null)
@@ -143,17 +142,16 @@ public class GameRunner
                 : GameMode.OnlineVersus;
 
             if (gameMode is not GameMode selectedMode)
-            {
-                _isRunning = false;
-                break;
-            }
+                return;
 
             var game = new Game(_config, selectedMode);
 
             //环节二：游戏循环（网络处理、游戏处理、渲染调用）
-            while (game.GameState != CoreGameState.GameOver && _isRunning)
+            while (game.GameState != CoreGameState.GameOver)
             {
-                HandlePlayingInput(game);
+                if(HandlePlayingInput(game))
+                    return;
+
                 HandleRemoteInput(game);//网络调用1
                 game.UpdateGameIfdue();
 
@@ -177,10 +175,8 @@ public class GameRunner
             }
 
             //环节三：游戏结束交互
-            if (_isRunning && HandleGameOverInput() == true)
-                continue;
-            else
-                _isRunning = false;
+            if (HandleGameOverInput() == false)
+                return;
         }
     }
 
