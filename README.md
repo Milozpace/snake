@@ -1,64 +1,29 @@
 ## 游戏主要模块
 ### Core
-游戏的核心逻辑模块，负责管理游戏状态、玩家、食物以及游戏规则。
-- **Game**：游戏运行的核心协调对象，负责组织游戏更新、玩家管理、食物生成、碰撞检测以及游戏状态处理。
-- **Player**：管理玩家相关状态，并关联对应的 Snake。
-- **Snake**：负责蛇的移动、转向以及技能状态管理。
-
-
-### Rendering
-游戏渲染模块，负责将 `WorldFrame` 快照转换为终端画面。
-
-渲染模块通过 `WorldFrame`（包含 `PlayerFrame`）获取所需数据，不直接依赖具体的 Game、Player 对象。
-
-本地游戏与 Guest 接收到的游戏数据可以共用同一套渲染逻辑。
-
-内部按照绘制职责进一步划分：
-- **Renderer**：渲染模块的统一入口，组织各个绘制模块的调用顺序。
-- BoardRenderer：负责游戏世界的绘制，包括地图、食物和蛇。
-- HudRenderer：负责游戏信息的绘制，包括玩家信息、分数和技能条。
-- OverlayRenderer：负责覆盖界面的绘制，包括主菜单、暂停界面和结算界面。
-- CanvasPainter：提供基础绘制方法，将字符和颜色写入 FrameBuffer。
-- ConsolePresenter：负责比较前后两帧的画面差异，并通过 ANSI 转义序列将变化输出到终端。
-- FrameBuffer：负责存储当前帧的字符与颜色数据。
-
-*（ps：比较多，不建议细看，总之就是一个比较独立的模块）*
-
-
-### Network
-网络通信模块，负责 Host 与 Guest 之间的数据传输及相关处理。
-
-**通信模块：**
-- **MqttTransport**：基于 MQTTnet 封装的基础通信对象，提供连接、订阅、发布和消息接收功能。
-- **Protocol**：使用 Protocol Buffers 定义网络通信的数据结构，例如 PlayerInput 和 WorldSnapshot。
-
-**Gamerunner模块：**
-- **WorldSnapshotFactory**：负责将本地游戏状态转换为 WorldSnapshot，并将接收到的 WorldSnapshot 解码为 WorldFrame。
-- **WorldSnapshotBroadcaster**：负责管理 Host 端游戏状态的定时广播任务
-- **RemoteInputProcessor**：负责解析远程玩家的输入信息，并将其转换为对应的游戏操作。
-
-**GuestRunner模块：**
-- **GuestInputBroadcaster**：负责 Guest 端的键盘输入信息广播
+游戏的核心逻辑模块，负责管理游戏状态、玩家、食物以及游戏规则，不依赖其他模块独立
+- [Game](./Snake.Core/Core/Game.cs)：游戏运行的核心协调对象，负责组织游戏更新、玩家管理、食物生成、碰撞检测以及游戏状态处理。
+- [Player](./Snake.Core/Core/Player.cs)：管理玩家相关状态，并关联对应的 Snake。
+- [Snake](./Snake.Core/Core/Snake.cs)：负责蛇的移动、转向以及技能状态管理。
 
 
 ## Application
 应用运行模块，负责组织各个模块的协作，控制游戏运行流程。
 
-### Gamerunner
-本地游戏/Host（若多人联机）的运行器，负责组织输入处理、游戏推进、画面渲染以及网络通信四个职责。
+### [Gamerunner](Snake.App\Application\GameRunner.cs)
+本地游戏/Host的运行器，负责组织输入处理、游戏推进、画面渲染以及网络通信四个职责。
 (适配本地单人/双人/多人联机等多模式)
 
 - **游戏模块**：
 	- 持续调用 `Game.UpdateGameIfdue()`，推进游戏模拟。
-	- **处理本地键盘输入**，例如蛇的转向、加速、游戏暂停与退出。
+	- **订阅并处理本地键盘输入事件**，例如蛇的转向、加速、游戏暂停与退出。
 - **渲染模块**：
-	- 按照渲染频率调用 `Renderer.RenderFrame(game.CaptureFrame())`，更新终端画面。
+	- 使用 `Renderer.RenderFrame(WorldFrame frame)`，通过订阅`WorldFrame`，更新终端画面。
 - **通信模块**（Host 模式）：
 	- 接收并处理 Guest 发送的远程输入信息（Topic：`snake/input`）。
 	- 管理游戏状态的广播任务，将 WorldSnapshot 发布至网络（Topic：`snake/world`）。
 
-### Guestrunner
-轻量级的 Guest 客户端运行器，不负责本地游戏模拟与状态推进，主要负责协调键盘输入、网络通信和画面渲染。*（其实就是mini版的GameRunner）*
+### [GuestRunner](Snake.App\Application\GuestRunner.cs)
+轻量级的 Guest 客户端运行器，主要负责协调键盘输入、网络通信和画面渲染。
 
 - **输入处理**
 	- 将玩家操作封装为 `PlayerInput` 数据对象，并交由 `GuestInputBroadcaster` 处理。
@@ -72,29 +37,42 @@
 - **渲染模块**：
 	- 使用 `WorldFrame` 完成画面绘制，与 GameRunner 共用同一个渲染入口。
 
----
-### 其他模块
-#### View
-提供 Core、Application 与 Rendering 共用的数据 record。
-
-- **WorldFrame**：保存某个时刻的游戏状态、玩家快照和食物坐标。
-- **PlayerFrame**：保存玩家身份、分数、身体坐标和技能状态，集合使用 ImmutableArray。
-- **WorldDefinition**：描述地图尺寸、技能总时长等一局内固定的显示参数。
-- **WorldFrameFactory**：读取具体的 Game 和 Player，创建独立快照；本地通过 `Game.CaptureFrame()` 获取。
-
-#### Input
-提供键盘输入`ConsoleKey`的扩展方法。
-
-- **ConsoleKeyExtensions**：通过扩展方法将方向键和 WASD 按键映射为游戏中的 Direction。  (同时适配了本地和多人联机)
 
 
-#### Config
-负责游戏运行参数的配置。
+### Rendering
+渲染模块通过 `WorldFrame` 获取渲染终端画面所需的所有数据。
 
-- **GameConfig**：游戏配置的数据模型。  
-- **configClassic.json**：定义地图尺寸、游戏模拟步长、移动速度、技能冷却、食物生成等参数。
+ `WorldFrame`作为游戏核心作为游戏核心与渲染器的数据传输对，具体定义见 [WorldFrame.cs](./Snake.Core/Vi/.cs)
 
-#### Skin
-负责玩家外观配置。所以每一条蛇的蛇头与蛇身的颜色都不一样(虽然现在只有两套)
+内部按照绘制职责进一步划分：
+- [Renderer](Snake.Rendering\Rendering\Renderer.cs)：渲染模块的统一入口，向外提供 `public void RenderFrame(WorldFrame frame)`接口
+- BoardRenderer：负责游戏世界的绘制，包括地图、食物和蛇。
+- HudRenderer：负责游戏信息的绘制，包括玩家信息、分数和技能条。
+- OverlayRenderer：负责覆盖界面的绘制，包括主菜单、暂停界面和结算界面。
+- CanvasPainter：提供基础绘制方法，将字符和颜色写入 FrameBuffer。
+- ConsolePresenter：负责比较前后两帧的画面差异，并通过 ANSI 转义序列将变化输出到终端。
+- FrameBuffer：负责存储当前帧的字符与颜色数据。
+
+
+## Network
+网络通信模块，负责 Host 与 Guest 之间的数据传输及相关处理。
+
+**通信模块：**
+- **MqttTransport**：基于 MQTTnet 封装的基础通信对象，提供连接、订阅、发布和消息接收功能。
+- **Protocol**：使用 Protocol Buffers 定义网络通信的数据结构，包含 [PlayerInput](Snake.Network\Network\Protocol\player_input.proto) 和 [WorldSnapshot](Snake.Network\Network\Protocol\world_snapshot.proto)。
+
+**[Gamerunner](Snake.App\Application\GameRunner.cs) 模块：**
+  - [WorldFrameFactory](Snake.Core\Views\WorldFrameFactory.cs)：负责将游戏数据`WorldFrame`转换为 `WorldSnapshot`，作为**Mqtt的数据传输对象**
+- [WorldSnapshotBroadcaster](Snake.Network\Network\WorldSnapshotBroadcaster.cs)：负责管理 Host 端游戏数据的广播任务
+- [RemoteInputProcessor](Snake.Network\Network\RemoteInputProcessor.cs)：负责处理远程玩家的输入信息，并调用`Game.cs`提供的操作接口
+
+**[GuestRunner](Snake.App\Application\GuestRunner.cs) 模块：**
+- [GuestInputBroadcaster](Snake.Network\Network\GuestInputBroadcaster.cs)：负责 Guest 端的键盘输入信息广播
+
+
+## Godot
+Godot游戏引擎模块，正在施工中。
+
+将游戏运行在godot中，使用2D界面交互与3D游戏画面渲染，同时兼容与终端联机
 
 
