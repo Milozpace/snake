@@ -3,7 +3,6 @@ namespace snake.Application;
 using System.Diagnostics;
 using SnakeNetwork.Protocol;
 using snake.Core;
-using GameDirection = Core.Primitives.Direction;
 using snake.Core.GameTypes;
 using snake.Rendering;
 using snake.Rendering.Skin;
@@ -11,6 +10,7 @@ using CoreGameState = Core.GameTypes.GameState;
 using snake.Input;
 using snake.Network;
 using snake.Config;
+using R3;
 
 
 public class GameRunner
@@ -19,14 +19,16 @@ public class GameRunner
     private readonly GameConfig _config;
     private readonly Renderer _renderer;
 
-
-
     //计时器
     private readonly Stopwatch _renderClock = Stopwatch.StartNew();
 
     //net与发布模块
     private readonly MqttTransport? _network;
     private readonly WorldSnapshotBroadcaster? _snapshotBroadcaster;
+
+    //交互事件流
+    private readonly Subject<ConsoleKey> _keyStream = new();
+
 
     //Constructor
     public GameRunner(
@@ -40,10 +42,59 @@ public class GameRunner
 
         if (_network is not null)
             _snapshotBroadcaster = new(config, _network);
-
     }
 
-    //键盘输入接口 （to game）
+    private void RegisterInputSubscriptions(Game game, int wasdPlayerId)
+    {
+        var pauseSubscription = _keyStream
+            .Where(key => key is ConsoleKey.Spacebar)
+            .Subscribe(_ => game.TogglePause());
+
+        var arrowTurnSubscription = _keyStream
+            .Select(key => key.ToGameDirectionFromArrowKeys())
+            .Where(direction => direction.HasValue)
+            .Select(direction => direction!.Value) //空值宽恕运算符
+            .Subscribe(direction => game.ToggleDirection(01, direction));
+
+        var wasdTurnSubscription = _keyStream
+            .Select(key => key.ToGameDirectionFromWasdKeys())
+            .Where(direction => direction.HasValue)
+            .Select(direction => direction!.Value)
+            .Subscribe(direction => game.ToggleDirection(wasdPlayerId, direction));
+
+        var arrowBoostSubscription = _keyStream
+            .Where(key => key is ConsoleKey.M)
+            .Subscribe(_ => game.ToggleBoost(01));
+
+        var wasdBoostSubscription = _keyStream
+            .Where(key => key is ConsoleKey.Q)
+            .Subscribe(_ => game.ToggleBoost(wasdPlayerId));
+    }
+
+    private bool HandlePlayingInput()
+    {
+        if (!Console.KeyAvailable)
+            return true;
+
+        var key = Console.ReadKey(true).Key;
+        if (key == ConsoleKey.Escape)
+            return false;
+
+        _keyStream.OnNext(key);
+        return true;
+    }
+
+    private void HandleRemoteInput(Game game) //1.接收input信息 2.解析 3.调用应用
+    {
+        if (_network is null)
+            return;
+        while (_network.TryReceive(out byte[]? received) && received is not null)
+        {
+            PlayerInput input = PlayerInput.Parser.ParseFrom(received);
+            RemoteInputProcessor.ApplyRemoteInput(game, input);
+        }
+    }
+
     private static GameMode? SelectGameMode()
     {
         while (true)
@@ -59,61 +110,6 @@ public class GameRunner
         }
     }
 
-    private bool HandlePlayingInput(Game game)
-    {
-        if (!Console.KeyAvailable)
-            return true;
-
-        ConsoleKey key = Console.ReadKey(true).Key;
-
-        if (key == ConsoleKey.Escape)
-        {
-            return false;
-        }
-        else if (key == ConsoleKey.Spacebar)
-        {
-            game.TogglePause();
-        }
-
-        if (game.GameState != CoreGameState.Paused)
-        {
-            //判断第二套按键的绑定对象（根据创建游戏的gamemode）
-            int secondBindingPlayerId;
-            if (game.Mode == GameMode.SinglePlayer || _network != null)
-                secondBindingPlayerId = 1;
-            else
-                secondBindingPlayerId = 2;
-
-            //按键一
-            GameDirection? newDirection1 = key.ToGameDirectionFromArrowKeys();
-            if (newDirection1 is { } direction1)
-                game.ToggleDirection(01, direction1);
-
-            if (key == ConsoleKey.M)
-                game.ToggleBoost(01);
-
-            //按键二
-            GameDirection? newDirection2 = key.ToGameDirectionFromWasdKeys();
-            if (newDirection2 is { } direction2)
-                game.ToggleDirection(secondBindingPlayerId, direction2);
-
-            if (key == ConsoleKey.Q)
-                game.ToggleBoost(secondBindingPlayerId);
-        }
-        return true;
-    }
-
-    private void HandleRemoteInput(Game game) //1.接收input信息 2.解析 3.调用应用
-    {
-        if (_network is null)
-            return;
-        while (_network.TryReceive(out byte[]? received) && received is not null)
-        {
-            PlayerInput input = PlayerInput.Parser.ParseFrom(received);
-            RemoteInputProcessor.ApplyRemoteInput(game, input);
-        }
-    }
-
     private static bool HandleGameOverInput()
     {
         while (true)
@@ -126,8 +122,18 @@ public class GameRunner
         }
     }
 
+    private static int BindingSecondPlayerId(GameMode mode)
+    {
+        return mode switch
+        {
+            GameMode.SinglePlayer => 1,
+            GameMode.LocalVersus => 2,
+            GameMode.OnlineVersus => 1,
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
+    }
 
-    
+
     //运行游戏
     public async Task RunGameAsync()
     {
@@ -144,15 +150,18 @@ public class GameRunner
             if (gameMode is not GameMode selectedMode)
                 return;
 
+
             var game = new Game(_config, selectedMode);
+            int wasdPlayerId = BindingSecondPlayerId(selectedMode);
+            RegisterInputSubscriptions(game, wasdPlayerId);
 
             //环节二：游戏循环（网络处理、游戏处理、渲染调用）
             while (game.GameState != CoreGameState.GameOver)
             {
-                if(HandlePlayingInput(game))
+                if (!HandlePlayingInput())
                     return;
 
-                HandleRemoteInput(game);//网络调用1
+                HandleRemoteInput(game);
                 game.UpdateGameIfdue();
 
                 //保证最后一帧能正常渲染与发布
