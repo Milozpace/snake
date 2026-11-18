@@ -1,10 +1,7 @@
 
-using snake.Application;
-using snake.Config;
-using snake.Network;
-using snake.Rendering.Skin;
+using Snake.Network;
 
-namespace snake.Application.Startup;
+namespace Snake.App.Application.Startup;
 
 internal static class AppRunner
 {

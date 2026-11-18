@@ -1,7 +1,7 @@
 using ProtoDirection = SnakeNetwork.Protocol.Direction;
-using GameDirection = snake.Core.Primitives.Direction;
+using GameDirection = Snake.Core.Primitives.Direction;
 
-namespace snake.Input;
+namespace Snake.App.Input;
 
 public static class ConsoleKeyExtensions
 {

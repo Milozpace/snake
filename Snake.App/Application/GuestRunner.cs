@@ -1,14 +1,13 @@
-namespace snake.Application;
+namespace Snake.App.Application;
 
 using System.Diagnostics;
-using Google.Protobuf;
 using SnakeNetwork.Protocol;
-using snake.Network;
-using snake.Rendering;
-using snake.Rendering.Skin;
-using snake.Views;
-using snake.Config;
-using snake.Input;
+using Snake.Network;
+using Snake.Rendering;
+using Snake.Rendering.Skin;
+using Snake.Views;
+using Snake.Config;
+using Snake.App.Input;
 
 public class GuestRunner(
         GameConfig config,

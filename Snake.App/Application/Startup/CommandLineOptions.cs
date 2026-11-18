@@ -1,4 +1,4 @@
-namespace snake.Application.Startup;
+namespace Snake.App.Application.Startup;
 
 internal enum AppRunMode
 {

@@ -1,3 +1,3 @@
-﻿using snake.Application.Startup;
+﻿using Snake.App.Application.Startup;
 
 await AppRunner.RunAsync(args);

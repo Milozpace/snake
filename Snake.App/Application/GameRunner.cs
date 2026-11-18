@@ -1,17 +1,16 @@
-namespace snake.Application;
+namespace Snake.App.Application;
 
-using System.Diagnostics;
 using SnakeNetwork.Protocol;
-using snake.Core;
-using snake.Core.GameTypes;
-using snake.Rendering;
-using snake.Rendering.Skin;
+using Snake.Core;
+using Snake.Core.GameTypes;
+using Snake.Rendering;
+using Snake.Rendering.Skin;
 using CoreGameState = Core.GameTypes.GameState;
-using snake.Input;
-using snake.Network;
-using snake.Config;
+using Snake.App.Input;
+using Snake.Network;
+using Snake.Config;
 using R3;
-using snake.Views;
+using Snake.Views;
 
 public class GameRunner
 {

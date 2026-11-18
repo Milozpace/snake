@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using snake.Config;
-using snake.Rendering.Skin;
+using Snake.Config;
+using Snake.Rendering.Skin;
 
-namespace snake.Application.Startup;
+namespace Snake.App.Application.Startup;
 
 internal static class AppConfigLoader
 {
