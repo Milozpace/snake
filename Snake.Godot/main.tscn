@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://cp70frt0d4y60"]
 
 [ext_resource type="Script" uid="uid://bwodksy64ikjo" path="res://GameController.cs" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://c38i4jefrr8s5" path="res://ui_control.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://ccmhg084aqxg7" path="res://Ui_Processor.cs" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://8uhuxkb4qa2m" path="res://UI_Phase_Controllor.gd" id="2_h2yge"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_03qjk"]
 bg_color = Color(0, 0, 0, 0.6666667)
@@ -10,24 +11,25 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="Main" type="Node" unique_id=1096013069 node_paths=PackedStringArray("_singleButton", "_versusButton", "_replayButton", "_exitButton")]
+[node name="Main" type="Node" unique_id=1096013069]
 script = ExtResource("1_ig7tw")
-_singleButton = NodePath("UI/Menu/Margin/MenuVBox/ButtonVBox/SingleButton")
-_versusButton = NodePath("UI/Menu/Margin/MenuVBox/ButtonVBox/VersusButton")
-_replayButton = NodePath("UI/Results/Margin/MenuVBox/ButtonVBox/ReplayButton")
-_exitButton = NodePath("UI/Results/Margin/MenuVBox/ButtonVBox/ExitButton")
 
-[node name="UI" type="Control" parent="." unique_id=94613557 node_paths=PackedStringArray("menu", "playing", "results")]
+[node name="UI" type="Control" parent="." unique_id=94613557 node_paths=PackedStringArray("menu", "playing", "results", "controller")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_0xm2m")
+script = ExtResource("2_h2yge")
 menu = NodePath("Menu")
 playing = NodePath("Playing")
 results = NodePath("Results")
+controller = NodePath("..")
+
+[node name="UI_ButtonPressed" type="Node" parent="UI" unique_id=461149181 node_paths=PackedStringArray("_gameController")]
+script = ExtResource("2_0xm2m")
+_gameController = NodePath("../..")
 
 [node name="BackGround" type="ColorRect" parent="UI" unique_id=48580788]
 layout_mode = 1
@@ -161,3 +163,8 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 41
 theme_override_styles/normal = SubResource("StyleBoxFlat_03qjk")
 text = "退出游戏"
+
+[connection signal="pressed" from="UI/Menu/Margin/MenuVBox/ButtonVBox/SingleButton" to="UI/UI_ButtonPressed" method="OnSingleButtonPressed"]
+[connection signal="pressed" from="UI/Menu/Margin/MenuVBox/ButtonVBox/VersusButton" to="UI/UI_ButtonPressed" method="OnVersusButtonPressed"]
+[connection signal="pressed" from="UI/Results/Margin/MenuVBox/ButtonVBox/ReplayButton" to="UI/UI_ButtonPressed" method="OnReplayButtonPressed"]
+[connection signal="pressed" from="UI/Results/Margin/MenuVBox/ButtonVBox/ExitButton" to="UI/UI_ButtonPressed" method="OnExitButtonPressed"]

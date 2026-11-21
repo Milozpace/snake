@@ -55,7 +55,7 @@ public class GameRunner
             .Subscribe(_ => game.TogglePause());
 
         var arrowTurnSubscription = _keyStream
-            .Select(key => key.ToGameDirectionFromArrowKeys())
+            .Select(key => key.ToGameDirectionFromArrowKeys())//对key进行强转换过滤（非direction会变成null）
             .Where(direction => direction.HasValue)
             .Select(direction => direction!.Value) //空值宽恕运算符
             .Subscribe(direction => game.ToggleDirection(01, direction));
@@ -115,7 +115,7 @@ public class GameRunner
         return true;
     }
 
-    private void HandleRemoteInput(Game game) //1.接收input信息 2.解析 3.调用应用
+    private void HandleRemoteInput() //1.接收input信息 2.解析 3.调用应用
     {
         if (_network is null)
             return;
@@ -194,7 +194,7 @@ public class GameRunner
                 if (!HandlePlayingInput())
                     return;
 
-                HandleRemoteInput(game);
+                HandleRemoteInput();
                 game.UpdateGameIfdue();
                 _worldFrameStream.OnNext(game.CaptureFrame());
 

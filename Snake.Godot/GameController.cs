@@ -15,23 +15,17 @@ public partial class GameController : Node
 	private GameConfig? _config;
 	private Game? _game;
 
-	// 引用
-	[Export] private Button _singleButton = null!;
-	[Export] private Button _versusButton = null!;
-	[Export] private Button _replayButton = null!;
-	[Export] private Button _exitButton = null!;
 
 	[Signal]
 	public delegate void PhaseChangeEventHandler(string phase);
 
+	//游戏结束需要主动通知ui
 	private readonly ReactiveProperty<AppPhase> _phase = new(AppPhase.Menu);
-
 	private IDisposable _phaseSubscription = null!;
-
-
 
 	public override void _Ready()
 	{
+		//使用signal主动通知ui_controllor
 		_phaseSubscription = _phase
 			.Select(phase => phase.ToString())
 			.Subscribe(phaseString =>
@@ -49,53 +43,12 @@ public partial class GameController : Node
 		}
 		catch (Exception ex)
 		{
-			_singleButton.Disabled = true;
-			_versusButton.Disabled = true;
-
 			GD.PushError($"配置加载失败：{ex.Message}");
 			return;
 		}
 
-		ConnectButtons();
 	}
 
-	//1. 信号连接与函数
-	private void ConnectButtons()
-	{
-		_singleButton.Pressed += OnSinglePressed;
-		_versusButton.Pressed += OnVersusPressed;
-		_replayButton.Pressed += EnterMenu;
-		_exitButton.Pressed += ExitGame;
-	}
-
-	private void OnSinglePressed()
-	{
-		StartGame(GameMode.SinglePlayer);
-	}
-
-	private void OnVersusPressed()
-	{
-		StartGame(GameMode.LocalVersus);
-	}
-
-	// 创建一局：由按钮回调调用。
-	private void StartGame(GameMode mode)
-	{
-		if (_phase.Value != AppPhase.Menu || _config is null)
-			return;
-
-		_game = new Game(_config, mode);
-
-		ChangePhase(AppPhase.InGame);
-	}
-
-	private void ExitGame()
-	{
-		GetTree().Quit();
-	}
-
-
-	// 2.持续调度：由 Godot 定期调用。
 	public override void _PhysicsProcess(double delta) //现在的写法有挺大的问题但暂且不管……
 	{
 		if (_phase.Value != AppPhase.InGame || _game is null)
@@ -114,21 +67,36 @@ public partial class GameController : Node
 		}
 	}
 
-	// 3.界面与游戏phase管理
-	private void EnterResults()
+	// 1.根据按钮模式创建一局游戏
+	public void StartGame(GameMode mode)
 	{
-		ChangePhase(AppPhase.Results);
+		if (_phase.Value != AppPhase.Menu || _config is null)
+			return;
+
+		_game = new Game(_config, mode);
+
+		ChangePhase(AppPhase.InGame);
 	}
 
-	private void EnterMenu()
+	//2.ui交互接口：退出、
+	public void ExitGame()
+	{
+		GetTree().Quit();
+	}
+
+	public void EnterMenu()
 	{
 		_game = null;
 		ChangePhase(AppPhase.Menu);
 	}
 
+	//更改Phase的回调函数
 	private void ChangePhase(AppPhase phase) =>
 		_phase.Value = phase;
 
-
+	private void EnterResults()
+	{
+		ChangePhase(AppPhase.Results);
+	}
 
 }
